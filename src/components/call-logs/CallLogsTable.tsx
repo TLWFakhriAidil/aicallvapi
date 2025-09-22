@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ interface Agent {
 }
 
 export function CallLogsTable() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Get API key

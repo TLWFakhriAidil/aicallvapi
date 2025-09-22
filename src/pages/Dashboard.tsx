@@ -1,11 +1,11 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bot, Phone, Zap, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">

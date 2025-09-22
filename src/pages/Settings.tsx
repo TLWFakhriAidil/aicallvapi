@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useCustomAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -137,15 +137,15 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="email"
-                    value={user?.email || ''}
+                    id="username"
+                    value={user?.username || ''}
                     disabled
                     className="bg-muted"
                   />
                   <p className="text-sm text-muted-foreground">
-                    Email cannot be changed. Contact support if needed.
+                    Username cannot be changed. Contact support if needed.
                   </p>
                 </div>
                 <div className="space-y-2">

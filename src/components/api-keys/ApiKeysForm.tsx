@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { VapiClient } from '@/lib/vapiClient';
@@ -32,7 +32,7 @@ interface ApiKeysData {
 }
 
 export function ApiKeysForm() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isValidating, setIsValidating] = useState(false);

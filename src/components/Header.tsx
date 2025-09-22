@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Bot, Menu, X, User, LogOut, Settings, Phone } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCustomAuth } from "@/contexts/CustomAuthContext";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useCustomAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -56,7 +56,7 @@ export function Header() {
                   <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.email?.charAt(0).toUpperCase()}
+                        {user.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -64,7 +64,7 @@ export function Header() {
                 <DropdownMenuContent className="w-56" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user.email}</p>
+                      <p className="font-medium">{user.username}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />

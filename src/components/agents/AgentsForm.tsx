@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Plus } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { VapiClient } from '@/lib/vapiClient';
 import { Link } from 'react-router-dom';
@@ -41,7 +41,7 @@ const LANGUAGE_OPTIONS = [
 ];
 
 export function AgentsForm() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

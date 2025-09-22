@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Calendar } from 'lucide-react';
@@ -16,7 +16,7 @@ interface Agent {
 }
 
 export function AgentsList() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
 
   const { data: agents, isLoading } = useQuery({
     queryKey: ['agents', user?.id],

@@ -4,7 +4,7 @@ import { Loader2, Bot, User } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 
@@ -20,7 +20,7 @@ interface MessageListProps {
 }
 
 export function MessageList({ isTyping = false }: MessageListProps) {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch messages

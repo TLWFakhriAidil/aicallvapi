@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Send, Loader2 } from 'lucide-react';
 
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -21,7 +21,7 @@ const messageSchema = z.object({
 type MessageFormData = z.infer<typeof messageSchema>;
 
 export function ChatBox() {
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const queryClient = useQueryClient();
   const [isTyping, setIsTyping] = useState(false);
 
