@@ -14,7 +14,10 @@ import CreateAgent from "./pages/CreateAgent";
 import ManageApiKeys from "./pages/ManageApiKeys";
 import ApiKeysPage from "./pages/api-keys";
 import ChatPage from "./pages/chat";
-import CallLogs from "./pages/CallLogs";
+import CallLogsOld from '@/pages/CallLogs';
+import AgentsPage from '@/pages/agents';
+import NumbersPage from '@/pages/numbers';
+import CallLogsPage from '@/pages/call-logs';
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -73,10 +76,34 @@ const App = () => (
               } 
             />
             <Route 
+              path="/call-logs-old" 
+              element={
+                <ProtectedRoute>
+                  <CallLogsOld />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/call-logs" 
               element={
                 <ProtectedRoute>
-                  <CallLogs />
+                  <CallLogsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/agents" 
+              element={
+                <ProtectedRoute>
+                  <AgentsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/numbers" 
+              element={
+                <ProtectedRoute>
+                  <NumbersPage />
                 </ProtectedRoute>
               } 
             />

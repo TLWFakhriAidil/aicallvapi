@@ -1,25 +1,24 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import { VapiClient } from '@/lib/vapiClient';
+import { Badge } from '@/components/ui/badge';
 
+// Schema for form validation
 const apiKeysSchema = z.object({
-  vapi_api_key: z.string().min(1, 'Vapi API Key diperlukan'),
-  assistant_id: z.string().min(1, 'Assistant ID diperlukan'),
-  phone_number_id: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return /^[\+]?[0-9\-\(\)\s]+$/.test(val);
-  }, 'Format nombor telefon tidak sah')
+  vapi_api_key: z.string().min(1, 'VAPI API Key is required'),
+  assistant_id: z.string().optional(),
+  phone_number_id: z.string().optional(),
 });
 
 type ApiKeysFormData = z.infer<typeof apiKeysSchema>;
@@ -27,87 +26,121 @@ type ApiKeysFormData = z.infer<typeof apiKeysSchema>;
 interface ApiKeysData {
   id: string;
   vapi_api_key: string;
-  assistant_id: string;
-  phone_number_id: string | null;
+  assistant_id?: string;
+  phone_number_id?: string;
+  status: string;
 }
 
 export function ApiKeysForm() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isValidating, setIsValidating] = useState(false);
 
   const form = useForm<ApiKeysFormData>({
     resolver: zodResolver(apiKeysSchema),
     defaultValues: {
       vapi_api_key: '',
       assistant_id: '',
-      phone_number_id: ''
-    }
+      phone_number_id: '',
+    },
   });
 
   // Fetch existing API keys
-  const { data: apiKeysData, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['api-keys', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-      
+      if (!user) return null;
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-
+      
       if (error) throw error;
       return data as ApiKeysData | null;
     },
-    enabled: !!user?.id
+    enabled: !!user,
   });
 
   // Auto-populate form when data is loaded
   useEffect(() => {
-    if (apiKeysData) {
+    if (data) {
       form.reset({
-        vapi_api_key: apiKeysData.vapi_api_key,
-        assistant_id: apiKeysData.assistant_id,
-        phone_number_id: apiKeysData.phone_number_id || ''
+        vapi_api_key: data.vapi_api_key,
+        assistant_id: data.assistant_id || '',
+        phone_number_id: data.phone_number_id || '',
       });
     }
-  }, [apiKeysData, form]);
+  }, [data, form]);
 
-  // Save/Update mutation
+  // Mutation for saving API keys
   const saveMutation = useMutation({
     mutationFn: async (data: ApiKeysFormData) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!user) throw new Error('User not authenticated');
 
-      const payload = {
-        user_id: user.id,
-        vapi_api_key: data.vapi_api_key,
-        assistant_id: data.assistant_id,
-        phone_number_id: data.phone_number_id || null
-      };
+      // First validate the API key
+      setIsValidating(true);
+      try {
+        const vapiClient = new VapiClient(data.vapi_api_key);
+        const isValid = await vapiClient.validateApiKey();
+        
+        if (!isValid) {
+          throw new Error('Invalid API key. Please check your VAPI API key.');
+        }
 
-      if (apiKeysData?.id) {
-        // Update existing
-        const { error } = await supabase
+        // Check if user already has API keys
+        const { data: existingKeys } = await supabase
           .from('api_keys')
-          .update(payload)
-          .eq('id', apiKeysData.id);
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { error } = await supabase
-          .from('api_keys')
-          .insert([payload]);
-        if (error) throw error;
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const apiKeyData = {
+          vapi_api_key: data.vapi_api_key,
+          assistant_id: data.assistant_id || '',
+          phone_number_id: data.phone_number_id || '',
+          status: 'connected',
+          updated_at: new Date().toISOString()
+        };
+
+        if (existingKeys) {
+          // Update existing keys
+          const { error } = await supabase
+            .from('api_keys')
+            .update(apiKeyData)
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+        } else {
+          // Insert new keys
+          const { error } = await supabase
+            .from('api_keys')
+            .insert({
+              user_id: user.id,
+              ...apiKeyData
+            });
+
+          if (error) throw error;
+        }
+      } finally {
+        setIsValidating(false);
       }
     },
     onSuccess: () => {
-      toast.success('API Keys berjaya disimpan!');
+      toast({
+        title: 'Success',
+        description: 'API key validated and saved successfully!',
+      });
       queryClient.invalidateQueries({ queryKey: ['api-keys', user?.id] });
     },
-    onError: (error) => {
-      console.error('Error saving API keys:', error);
-      toast.error('Ralat semasa menyimpan API Keys');
-    }
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
   const onSubmit = (data: ApiKeysFormData) => {
@@ -127,9 +160,22 @@ export function ApiKeysForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>API Keys Settings</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          API Keys Configuration
+          {data?.status === 'connected' ? (
+            <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Connected
+            </Badge>
+          ) : (
+            <Badge variant="secondary">
+              <XCircle className="w-3 h-3 mr-1" />
+              Not Connected
+            </Badge>
+          )}
+        </CardTitle>
         <CardDescription>
-          Urus kunci API anda untuk integrasi dengan perkhidmatan pihak ketiga
+          Configure your VAPI API key. It will be validated before saving.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -140,13 +186,9 @@ export function ApiKeysForm() {
               name="vapi_api_key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vapi API Key *</FormLabel>
+                  <FormLabel>VAPI API Key</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="password" 
-                      placeholder="Masukkan Vapi API Key"
-                      {...field} 
-                    />
+                    <Input {...field} type="password" placeholder="Enter your VAPI API key" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -158,12 +200,9 @@ export function ApiKeysForm() {
               name="assistant_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assistant ID *</FormLabel>
+                  <FormLabel>Assistant ID (Optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Masukkan Assistant ID"
-                      {...field} 
-                    />
+                    <Input {...field} placeholder="Enter your Assistant ID (optional)" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,12 +214,9 @@ export function ApiKeysForm() {
               name="phone_number_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number ID</FormLabel>
+                  <FormLabel>Phone Number ID (Optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Contoh: +60123456789"
-                      {...field} 
-                    />
+                    <Input {...field} placeholder="Enter your Phone Number ID (optional)" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,16 +225,21 @@ export function ApiKeysForm() {
 
             <Button 
               type="submit" 
-              className="w-full" 
-              disabled={saveMutation.isPending}
+              className="w-full"
+              disabled={saveMutation.isPending || isValidating}
             >
-              {saveMutation.isPending ? (
+              {isValidating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Menyimpan...
+                  Validating API Key...
+                </>
+              ) : saveMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
                 </>
               ) : (
-                'Simpan API Keys'
+                'Validate & Save API Key'
               )}
             </Button>
           </form>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Menu, X, User, LogOut, Settings } from "lucide-react";
+import { Bot, Menu, X, User, LogOut, Settings, Phone } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -75,9 +75,15 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/create-agent">
+                    <Link to="/agents">
                       <Bot className="mr-2 h-4 w-4" />
-                      Create Agent
+                      Voice Agents
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/numbers">
+                      <Phone className="mr-2 h-4 w-4" />
+                      Phone Numbers
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

@@ -14,12 +14,46 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          language: string | null
+          name: string
+          updated_at: string
+          user_id: string
+          voice: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          language?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+          voice?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          language?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+          voice?: string | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           assistant_id: string
           created_at: string
           id: string
           phone_number_id: string | null
+          status: string | null
           updated_at: string
           user_id: string
           vapi_api_key: string
@@ -29,6 +63,7 @@ export type Database = {
           created_at?: string
           id?: string
           phone_number_id?: string | null
+          status?: string | null
           updated_at?: string
           user_id: string
           vapi_api_key: string
@@ -38,9 +73,49 @@ export type Database = {
           created_at?: string
           id?: string
           phone_number_id?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string
           vapi_api_key?: string
+        }
+        Relationships: []
+      }
+      call_logs: {
+        Row: {
+          agent_id: string
+          call_id: string
+          caller_number: string
+          created_at: string
+          duration: number | null
+          id: string
+          start_time: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          call_id: string
+          caller_number: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          start_time: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          call_id?: string
+          caller_number?: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          start_time?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -66,6 +141,36 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      numbers: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          phone_number: string
+          phone_number_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          phone_number: string
+          phone_number_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          phone_number?: string
+          phone_number_id?: string
           updated_at?: string
           user_id?: string
         }
