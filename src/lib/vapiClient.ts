@@ -27,7 +27,7 @@ export interface VapiCallLog {
 }
 
 export class VapiClient {
-  private baseURL = 'https://api.vapi.ai/v1';
+  private baseURL = 'https://api.vapi.ai';
   private apiKey: string;
 
   constructor(apiKey: string) {
