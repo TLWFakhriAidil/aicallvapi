@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import CreateAgent from "./pages/CreateAgent";
 import ManageApiKeys from "./pages/ManageApiKeys";
 import ApiKeysPage from "./pages/api-keys";
+import ChatPage from "./pages/chat";
 import CallLogs from "./pages/CallLogs";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -60,6 +61,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ApiKeysPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/chat" 
+              element={
+                <ProtectedRoute>
+                  <ChatPage />
                 </ProtectedRoute>
               } 
             />
