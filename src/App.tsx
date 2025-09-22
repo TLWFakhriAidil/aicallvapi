@@ -10,6 +10,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
+import CreateAgent from "./pages/CreateAgent";
+import ManageApiKeys from "./pages/ManageApiKeys";
+import CallLogs from "./pages/CallLogs";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +35,38 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/create-agent" 
+              element={
+                <ProtectedRoute>
+                  <CreateAgent />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/api-keys" 
+              element={
+                <ProtectedRoute>
+                  <ManageApiKeys />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/call-logs" 
+              element={
+                <ProtectedRoute>
+                  <CallLogs />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />

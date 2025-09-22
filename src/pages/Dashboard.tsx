@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bot, Phone, Zap, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -80,8 +81,8 @@ export default function Dashboard() {
                 Set up your first voice agent in just a few minutes. Configure the voice, 
                 personality, and connect it to your business logic.
               </p>
-              <Button className="w-full">
-                Create Agent
+              <Button className="w-full" asChild>
+                <Link to="/create-agent">Create Agent</Link>
               </Button>
             </div>
           </CardContent>
@@ -103,8 +104,8 @@ export default function Dashboard() {
                 Connect your VAPI and OpenAI API keys to start building 
                 powerful voice agents with AI capabilities.
               </p>
-              <Button variant="outline" className="w-full">
-                Manage API Keys
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/api-keys">Manage API Keys</Link>
               </Button>
             </div>
           </CardContent>

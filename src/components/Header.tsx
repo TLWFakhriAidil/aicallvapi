@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Menu, X, User, LogOut } from "lucide-react";
+import { Bot, Menu, X, User, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -40,9 +40,9 @@ export function Header() {
             <a href="#pricing" className="text-sm font-medium hover:text-primary transition-smooth">
               Pricing
             </a>
-            <a href="#about" className="text-sm font-medium hover:text-primary transition-smooth">
-              About
-            </a>
+            <Link to="/call-logs" className="text-sm font-medium hover:text-primary transition-smooth">
+              Call Logs
+            </Link>
             <a href="#contact" className="text-sm font-medium hover:text-primary transition-smooth">
               Contact
             </a>
@@ -72,6 +72,24 @@ export function Header() {
                     <Link to="/dashboard">
                       <User className="mr-2 h-4 w-4" />
                       Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/create-agent">
+                      <Bot className="mr-2 h-4 w-4" />
+                      Create Agent
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/api-keys">
+                      <Settings className="mr-2 h-4 w-4" />
+                      API Keys
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -117,9 +135,9 @@ export function Header() {
               <a href="#pricing" className="text-sm font-medium hover:text-primary transition-smooth">
                 Pricing
               </a>
-              <a href="#about" className="text-sm font-medium hover:text-primary transition-smooth">
-                About
-              </a>
+              <Link to="/call-logs" className="text-sm font-medium hover:text-primary transition-smooth">
+                Call Logs
+              </Link>
               <a href="#contact" className="text-sm font-medium hover:text-primary transition-smooth">
                 Contact
               </a>
