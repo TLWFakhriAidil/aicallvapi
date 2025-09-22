@@ -22,16 +22,17 @@ import CallLogsPage from '@/pages/call-logs';
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
-const App = () => {
-  const queryClient = React.useMemo(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 3,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-      },
+// Create QueryClient outside component to avoid recreation
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
-  }), []);
+  },
+});
 
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -140,6 +141,6 @@ const App = () => {
       </BrowserRouter>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
