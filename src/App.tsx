@@ -3,13 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { CustomAuthProvider } from "@/contexts/CustomAuthContext";
+import { CustomProtectedRoute } from "@/components/layout/CustomProtectedRoute";
 import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
+import ChangePassword from "./pages/settings/ChangePassword";
 import Dashboard from "./pages/Dashboard";
-import ResetPassword from "./pages/ResetPassword";
 import CreateAgent from "./pages/CreateAgent";
 import ManageApiKeys from "./pages/ManageApiKeys";
 import ApiKeysPage from "./pages/api-keys";
@@ -25,7 +25,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+    <CustomAuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -34,85 +34,92 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/create-agent" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <CreateAgent />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/manage-api-keys" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <ManageApiKeys />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/api-keys" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <ApiKeysPage />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/chat" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <ChatPage />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/call-logs-old" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <CallLogsOld />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/call-logs" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <CallLogsPage />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/agents" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <AgentsPage />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/numbers" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <NumbersPage />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
               } 
             />
             <Route 
               path="/settings" 
               element={
-                <ProtectedRoute>
+                <CustomProtectedRoute>
                   <Settings />
-                </ProtectedRoute>
+                </CustomProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings/password" 
+              element={
+                <CustomProtectedRoute>
+                  <ChangePassword />
+                </CustomProtectedRoute>
               } 
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -120,7 +127,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
+    </CustomAuthProvider>
   </QueryClientProvider>
 );
 
