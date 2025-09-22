@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface User {
   id: string;
@@ -16,7 +17,7 @@ export interface SignInData {
   password: string;
 }
 
-// Simple hash function (in production, use bcrypt or similar)
+// Simple password hashing using Web Crypto API
 const hashPassword = async (password: string): Promise<string> => {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -25,134 +26,220 @@ const hashPassword = async (password: string): Promise<string> => {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-// Verify password against hash
 const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
   const passwordHash = await hashPassword(password);
   return passwordHash === hash;
 };
 
-// Store user in localStorage (temporary until migration is complete)
-const storeUserSession = (user: User): void => {
-  localStorage.setItem('auth_user', JSON.stringify(user));
+// Session management
+const generateSessionToken = (): string => {
+  return uuidv4() + '-' + Date.now();
 };
 
-// Get user from localStorage
+const storeUserSession = (user: User, sessionToken: string): void => {
+  localStorage.setItem('customAuthUser', JSON.stringify(user));
+  localStorage.setItem('customAuthToken', sessionToken);
+};
+
 const getUserFromStorage = (): User | null => {
-  const userData = localStorage.getItem('auth_user');
-  if (!userData) return null;
+  const stored = localStorage.getItem('customAuthUser');
+  return stored ? JSON.parse(stored) : null;
+};
+
+const getSessionTokenFromStorage = (): string | null => {
+  return localStorage.getItem('customAuthToken');
+};
+
+// Sign up function using Supabase
+export const signUp = async (data: SignUpData): Promise<{ user: User | null; error: string | null }> => {
   try {
-    return JSON.parse(userData);
-  } catch {
+    // Check if username already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', data.username)
+      .maybeSingle();
+    
+    if (existingUser) {
+      return { user: null, error: 'Username already exists' };
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(data.password);
+    
+    // Create new user in database
+    const { data: newUser, error } = await supabase
+      .from('users')
+      .insert({
+        username: data.username,
+        password_hash: passwordHash,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return { user: null, error: 'Failed to create account' };
+    }
+
+    // Return user without password hash
+    const user: User = {
+      id: newUser.id,
+      username: newUser.username,
+      created_at: newUser.created_at,
+    };
+
+    return { user, error: null };
+  } catch (error) {
+    return { user: null, error: 'Failed to create account' };
+  }
+};
+
+// Sign in function using Supabase
+export const signIn = async (data: SignInData): Promise<{ user: User | null; error: string | null }> => {
+  try {
+    // Get user from database
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', data.username)
+      .single();
+
+    if (error || !userData) {
+      return { user: null, error: 'Invalid username or password' };
+    }
+
+    // Verify password
+    const isValidPassword = await verifyPassword(data.password, userData.password_hash);
+    if (!isValidPassword) {
+      return { user: null, error: 'Invalid username or password' };
+    }
+
+    // Create user object without password hash
+    const user: User = {
+      id: userData.id,
+      username: userData.username,
+      created_at: userData.created_at,
+    };
+
+    // Generate session token
+    const sessionToken = generateSessionToken();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+    // Store session in database
+    await supabase
+      .from('user_sessions')
+      .insert({
+        user_id: user.id,
+        session_token: sessionToken,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    // Store session locally
+    storeUserSession(user, sessionToken);
+
+    return { user, error: null };
+  } catch (error) {
+    return { user: null, error: 'Login failed' };
+  }
+};
+
+// Sign out function
+export const signOut = async (): Promise<void> => {
+  try {
+    const sessionToken = getSessionTokenFromStorage();
+    
+    if (sessionToken) {
+      // Remove session from database
+      await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('session_token', sessionToken);
+    }
+    
+    // Clear local storage
+    localStorage.removeItem('customAuthUser');
+    localStorage.removeItem('customAuthToken');
+  } catch (error) {
+    // Clear local storage even if database operation fails
+    localStorage.removeItem('customAuthUser');
+    localStorage.removeItem('customAuthToken');
+  }
+};
+
+// Get current user and validate session
+export const getCurrentUser = async (): Promise<User | null> => {
+  try {
+    const user = getUserFromStorage();
+    const sessionToken = getSessionTokenFromStorage();
+    
+    if (!user || !sessionToken) {
+      return null;
+    }
+
+    // Validate session in database
+    const { data: session } = await supabase
+      .from('user_sessions')
+      .select('expires_at')
+      .eq('session_token', sessionToken)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!session || new Date(session.expires_at) < new Date()) {
+      // Session expired or invalid, clear local storage
+      await signOut();
+      return null;
+    }
+
+    return user;
+  } catch (error) {
     return null;
   }
 };
 
-// Sign up user (placeholder until migration is run)
-export const signUp = async (data: SignUpData) => {
+// Change password function using Supabase
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<{ error: string | null }> => {
   try {
-    // For now, simulate signup with localStorage until migration is complete
-    const existingUsers = JSON.parse(localStorage.getItem('temp_users') || '[]');
-    const userExists = existingUsers.find((u: any) => u.username === data.username);
-    
-    if (userExists) {
-      return { error: 'Username already exists' };
-    }
-
-    // Create new user
-    const newUser = {
-      id: 'temp-' + Date.now(),
-      username: data.username,
-      password_hash: await hashPassword(data.password),
-      created_at: new Date().toISOString(),
-    };
-
-    existingUsers.push(newUser);
-    localStorage.setItem('temp_users', JSON.stringify(existingUsers));
-
-    return { 
-      user: {
-        id: newUser.id,
-        username: newUser.username,
-        created_at: newUser.created_at,
-      }, 
-      error: null 
-    };
-  } catch (error: any) {
-    return { error: error.message };
-  }
-};
-
-// Sign in user (placeholder until migration is run)
-export const signIn = async (data: SignInData) => {
-  try {
-    // For now, use localStorage until migration is complete
-    const existingUsers = JSON.parse(localStorage.getItem('temp_users') || '[]');
-    const user = existingUsers.find((u: any) => u.username === data.username);
-
-    if (!user) {
-      return { error: 'Invalid username or password' };
-    }
-
-    // Verify password
-    const isValidPassword = await verifyPassword(data.password, user.password_hash);
-    if (!isValidPassword) {
-      return { error: 'Invalid username or password' };
-    }
-
-    // Store user session
-    const userData = {
-      id: user.id,
-      username: user.username,
-      created_at: user.created_at,
-    };
-    
-    storeUserSession(userData);
-
-    return { user: userData, error: null };
-  } catch (error: any) {
-    return { error: error.message };
-  }
-};
-
-// Sign out user
-export const signOut = async () => {
-  // Remove from localStorage
-  localStorage.removeItem('auth_user');
-};
-
-// Get current user
-export const getCurrentUser = async (): Promise<User | null> => {
-  return getUserFromStorage();
-};
-
-// Change password (placeholder until migration is run)
-export const changePassword = async (currentPassword: string, newPassword: string) => {
-  try {
-    const currentUser = await getCurrentUser();
+    const currentUser = getUserFromStorage();
     if (!currentUser) {
       return { error: 'Not authenticated' };
     }
 
-    // For now, use localStorage until migration is complete
-    const existingUsers = JSON.parse(localStorage.getItem('temp_users') || '[]');
-    const userIndex = existingUsers.findIndex((u: any) => u.id === currentUser.id);
-    
-    if (userIndex === -1) {
+    // Get user data from database
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('password_hash')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error || !userData) {
       return { error: 'User not found' };
     }
 
     // Verify current password
-    const isValidPassword = await verifyPassword(currentPassword, existingUsers[userIndex].password_hash);
+    const isValidPassword = await verifyPassword(currentPassword, userData.password_hash);
     if (!isValidPassword) {
       return { error: 'Current password is incorrect' };
     }
 
-    // Update password
-    existingUsers[userIndex].password_hash = await hashPassword(newPassword);
-    localStorage.setItem('temp_users', JSON.stringify(existingUsers));
+    // Hash new password
+    const newPasswordHash = await hashPassword(newPassword);
+    
+    // Update password in database
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        password_hash: newPasswordHash,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', currentUser.id);
+
+    if (updateError) {
+      return { error: 'Failed to change password' };
+    }
 
     return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error) {
+    return { error: 'Failed to change password' };
   }
 };
