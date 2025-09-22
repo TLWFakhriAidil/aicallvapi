@@ -55,7 +55,7 @@ export class VapiClient {
   // Test API key validity
   async validateApiKey(): Promise<boolean> {
     try {
-      await this.makeRequest('/assistants?limit=1');
+      await this.makeRequest('/me');
       return true;
     } catch (error) {
       return false;
