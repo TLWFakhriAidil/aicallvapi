@@ -36,7 +36,7 @@ export default function Dashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-green-500 p-3 rounded-lg">
+              <div className="bg-success p-3 rounded-lg">
                 <Phone className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -50,7 +50,7 @@ export default function Dashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-500 p-3 rounded-lg">
+              <div className="bg-primary p-3 rounded-lg">
                 <Zap className="h-6 w-6 text-white" />
               </div>
               <div>
