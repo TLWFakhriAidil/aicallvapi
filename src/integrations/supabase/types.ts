@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          assistant_id: string
+          created_at: string
+          id: string
+          phone_number_id: string | null
+          updated_at: string
+          user_id: string
+          vapi_api_key: string
+        }
+        Insert: {
+          assistant_id: string
+          created_at?: string
+          id?: string
+          phone_number_id?: string | null
+          updated_at?: string
+          user_id: string
+          vapi_api_key: string
+        }
+        Update: {
+          assistant_id?: string
+          created_at?: string
+          id?: string
+          phone_number_id?: string | null
+          updated_at?: string
+          user_id?: string
+          vapi_api_key?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company: string | null

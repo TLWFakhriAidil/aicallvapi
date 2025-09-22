@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
 import CreateAgent from "./pages/CreateAgent";
 import ManageApiKeys from "./pages/ManageApiKeys";
+import ApiKeysPage from "./pages/api-keys";
 import CallLogs from "./pages/CallLogs";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -47,10 +48,18 @@ const App = () => (
               } 
             />
             <Route 
-              path="/api-keys" 
+              path="/manage-api-keys" 
               element={
                 <ProtectedRoute>
                   <ManageApiKeys />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/api-keys" 
+              element={
+                <ProtectedRoute>
+                  <ApiKeysPage />
                 </ProtectedRoute>
               } 
             />
