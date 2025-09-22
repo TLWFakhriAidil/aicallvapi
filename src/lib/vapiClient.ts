@@ -27,7 +27,7 @@ export interface VapiCallLog {
 }
 
 export class VapiClient {
-  private baseURL = 'https://api.vapi.ai';
+  private baseURL = 'https://api.vapi.ai/v1';
   private apiKey: string;
 
   constructor(apiKey: string) {
@@ -55,7 +55,7 @@ export class VapiClient {
   // Test API key validity
   async validateApiKey(): Promise<boolean> {
     try {
-      await this.makeRequest('/me');
+      await this.makeRequest('/assistants?limit=1');
       return true;
     } catch (error) {
       return false;
