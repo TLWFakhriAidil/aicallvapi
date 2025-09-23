@@ -79,7 +79,16 @@ export function ApiKeysForm() {
     mutationFn: async (data: ApiKeysFormData) => {
       if (!user) throw new Error('User not authenticated');
 
-      
+      // First validate the API key
+      setIsValidating(false);
+      try {
+        const vapiClient = new VapiClient(data.vapi_api_key);
+        const isValid = await vapiClient.validateApiKey();
+        
+        if (!isValid) {
+          throw new Error('Invalid API key. Please check your VAPI API key.');
+        }
+
         // Check if user already has API keys
         const { data: existingKeys } = await supabase
           .from('api_keys')
