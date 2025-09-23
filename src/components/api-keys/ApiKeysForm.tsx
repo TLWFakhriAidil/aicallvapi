@@ -17,8 +17,6 @@ import { Badge } from '@/components/ui/badge';
 // Schema for form validation
 const apiKeysSchema = z.object({
   vapi_api_key: z.string().min(1, 'VAPI API Key is required'),
-  assistant_id: z.string().optional(),
-  phone_number_id: z.string().optional(),
 });
 
 type ApiKeysFormData = z.infer<typeof apiKeysSchema>;
@@ -26,8 +24,6 @@ type ApiKeysFormData = z.infer<typeof apiKeysSchema>;
 interface ApiKeysData {
   id: string;
   vapi_api_key: string;
-  assistant_id?: string;
-  phone_number_id?: string;
   status: string;
 }
 
@@ -41,8 +37,6 @@ export function ApiKeysForm() {
     resolver: zodResolver(apiKeysSchema),
     defaultValues: {
       vapi_api_key: '',
-      assistant_id: '',
-      phone_number_id: '',
     },
   });
 
@@ -68,8 +62,6 @@ export function ApiKeysForm() {
     if (data) {
       form.reset({
         vapi_api_key: data.vapi_api_key,
-        assistant_id: data.assistant_id || '',
-        phone_number_id: data.phone_number_id || '',
       });
     }
   }, [data, form]);
@@ -79,58 +71,45 @@ export function ApiKeysForm() {
     mutationFn: async (data: ApiKeysFormData) => {
       if (!user) throw new Error('User not authenticated');
 
-      // First validate the API key
-      setIsValidating(false);
-      try {
-        const vapiClient = new VapiClient(data.vapi_api_key);
-        const isValid = await vapiClient.validateApiKey();
-        
-        if (!isValid) {
-          throw new Error('Invalid API key. Please check your VAPI API key.');
-        }
+      // Check if user already has API keys
+      const { data: existingKeys } = await supabase
+        .from('api_keys')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        // Check if user already has API keys
-        const { data: existingKeys } = await supabase
+      const apiKeyData = {
+        vapi_api_key: data.vapi_api_key,
+        assistant_id: '',
+        phone_number_id: '',
+        status: 'connected',
+        updated_at: new Date().toISOString()
+      };
+
+      if (existingKeys) {
+        // Update existing keys
+        const { error } = await supabase
           .from('api_keys')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .update(apiKeyData)
+          .eq('user_id', user.id);
 
-        const apiKeyData = {
-          vapi_api_key: data.vapi_api_key,
-          assistant_id: data.assistant_id || '',
-          phone_number_id: data.phone_number_id || '',
-          status: 'connected',
-          updated_at: new Date().toISOString()
-        };
+        if (error) throw error;
+      } else {
+        // Insert new keys
+        const { error } = await supabase
+          .from('api_keys')
+          .insert({
+            user_id: user.id,
+            ...apiKeyData
+          });
 
-        if (existingKeys) {
-          // Update existing keys
-          const { error } = await supabase
-            .from('api_keys')
-            .update(apiKeyData)
-            .eq('user_id', user.id);
-
-          if (error) throw error;
-        } else {
-          // Insert new keys
-          const { error } = await supabase
-            .from('api_keys')
-            .insert({
-              user_id: user.id,
-              ...apiKeyData
-            });
-
-          if (error) throw error;
-        }
-      } finally {
-        setIsValidating(false);
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       toast({
         title: 'Success',
-        description: 'API key validated and saved successfully!',
+        description: 'API key saved successfully!',
       });
       queryClient.invalidateQueries({ queryKey: ['api-keys', user?.id] });
     },
@@ -175,7 +154,7 @@ export function ApiKeysForm() {
           )}
         </CardTitle>
         <CardDescription>
-          Configure your VAPI API key. It will be validated before saving.
+          Configure your VAPI API key for batch calling.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -195,51 +174,18 @@ export function ApiKeysForm() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="assistant_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assistant ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter your Assistant ID (optional)" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phone_number_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter your Phone Number ID (optional)" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <Button 
               type="submit" 
               className="w-full"
-              disabled={saveMutation.isPending || isValidating}
+              disabled={saveMutation.isPending}
             >
-              {isValidating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Validating API Key...
-                </>
-              ) : saveMutation.isPending ? (
+              {saveMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
                 </>
               ) : (
-                'Validate & Save API Key'
+                'Save API Key'
               )}
             </Button>
           </form>
