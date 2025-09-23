@@ -19,6 +19,9 @@ import CallLogsOld from '@/pages/CallLogs';
 import AgentsPage from '@/pages/agents';
 import NumbersPage from '@/pages/numbers';
 import CallLogsPage from '@/pages/call-logs';
+import PromptsPage from './pages/prompts';
+import CampaignsPage from './pages/campaigns';
+import BatchCallPage from './pages/batch-call';
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -112,6 +115,30 @@ function App() {
                   element={
                     <CustomProtectedRoute>
                       <NumbersPage />
+                    </CustomProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/prompts" 
+                  element={
+                    <CustomProtectedRoute>
+                      <PromptsPage />
+                    </CustomProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/campaigns" 
+                  element={
+                    <CustomProtectedRoute>
+                      <CampaignsPage />
+                    </CustomProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/batch-call" 
+                  element={
+                    <CustomProtectedRoute>
+                      <BatchCallPage />
                     </CustomProtectedRoute>
                   } 
                 />

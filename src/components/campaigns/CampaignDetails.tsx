@@ -15,21 +15,31 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
   const { data: campaign, isLoading: campaignLoading } = useQuery({
     queryKey: ["campaign", campaignId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get campaign
+      const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
-        .select(`
-          *,
-          prompts (
-            prompt_name,
-            first_message,
-            system_prompt
-          )
-        `)
+        .select('*')
         .eq('id', campaignId)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (campaignError) throw campaignError;
+
+      // Then get the prompt if it exists
+      let promptData = null;
+      if (campaignData.prompt_id) {
+        const { data: prompt } = await supabase
+          .from('prompts')
+          .select('prompt_name, first_message, system_prompt')
+          .eq('id', campaignData.prompt_id)
+          .single();
+        
+        promptData = prompt;
+      }
+
+      return {
+        ...campaignData,
+        prompts: promptData
+      };
     },
   });
 

@@ -17,19 +17,38 @@ export function CampaignsList() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase
+      // First get campaigns
+      const { data: campaignsData, error: campaignsError } = await supabase
         .from('campaigns')
-        .select(`
-          *,
-          prompts (
-            prompt_name
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (campaignsError) throw campaignsError;
+
+      // Then get prompts for each campaign
+      const campaignsWithPrompts = await Promise.all(
+        campaignsData.map(async (campaign) => {
+          if (campaign.prompt_id) {
+            const { data: prompt } = await supabase
+              .from('prompts')
+              .select('prompt_name')
+              .eq('id', campaign.prompt_id)
+              .single();
+            
+            return {
+              ...campaign,
+              prompts: prompt
+            };
+          }
+          return {
+            ...campaign,
+            prompts: null
+          };
+        })
+      );
+
+      return campaignsWithPrompts;
     },
   });
 
