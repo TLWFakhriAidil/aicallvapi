@@ -85,35 +85,89 @@ export type Database = {
           agent_id: string
           call_id: string
           caller_number: string
+          campaign_id: string | null
           created_at: string
           duration: number | null
+          end_of_call_report: Json | null
           id: string
+          metadata: Json | null
+          phone_number: string | null
           start_time: string
           status: string
           updated_at: string
           user_id: string
+          vapi_call_id: string | null
         }
         Insert: {
           agent_id: string
           call_id: string
           caller_number: string
+          campaign_id?: string | null
           created_at?: string
           duration?: number | null
+          end_of_call_report?: Json | null
           id?: string
+          metadata?: Json | null
+          phone_number?: string | null
           start_time: string
           status: string
           updated_at?: string
           user_id: string
+          vapi_call_id?: string | null
         }
         Update: {
           agent_id?: string
           call_id?: string
           caller_number?: string
+          campaign_id?: string | null
           created_at?: string
           duration?: number | null
+          end_of_call_report?: Json | null
           id?: string
+          metadata?: Json | null
+          phone_number?: string | null
           start_time?: string
           status?: string
+          updated_at?: string
+          user_id?: string
+          vapi_call_id?: string | null
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          campaign_name: string
+          created_at: string
+          failed_calls: number | null
+          id: string
+          prompt_id: string | null
+          status: string
+          successful_calls: number | null
+          total_numbers: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_name: string
+          created_at?: string
+          failed_calls?: number | null
+          id?: string
+          prompt_id?: string | null
+          status?: string
+          successful_calls?: number | null
+          total_numbers?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_name?: string
+          created_at?: string
+          failed_calls?: number | null
+          id?: string
+          prompt_id?: string | null
+          status?: string
+          successful_calls?: number | null
+          total_numbers?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -203,6 +257,36 @@ export type Database = {
           phone?: string | null
           subscription_plan?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      prompts: {
+        Row: {
+          created_at: string
+          first_message: string
+          id: string
+          prompt_name: string
+          system_prompt: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_message: string
+          id?: string
+          prompt_name: string
+          system_prompt: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_message?: string
+          id?: string
+          prompt_name?: string
+          system_prompt?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
