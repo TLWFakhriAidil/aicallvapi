@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 // Schema for form validation
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
+  provider: z.string().min(1, 'Voice provider is required'),
   voice: z.string().min(1, 'Voice selection is required'),
   language: z.string().min(1, 'Language is required'),
   firstMessage: z.string().optional(),
@@ -24,13 +25,42 @@ const agentSchema = z.object({
 
 type AgentFormData = z.infer<typeof agentSchema>;
 
-const VOICE_OPTIONS = [
-  { id: 'charlotte', name: 'Charlotte (Female, English)' },
-  { id: 'daniel', name: 'Daniel (Male, English)' },
-  { id: 'alice', name: 'Alice (Female, English)' },
-  { id: 'sarah', name: 'Sarah (Female, English)' },
-  { id: 'liam', name: 'Liam (Male, English)' },
+const VOICE_PROVIDERS = [
+  { id: 'elevenlabs', name: 'ElevenLabs' },
+  { id: 'openai', name: 'OpenAI' },
+  { id: 'playht', name: 'PlayHT' },
+  { id: 'azure', name: 'Azure' },
 ];
+
+const VOICE_OPTIONS = {
+  elevenlabs: [
+    { id: 'charlotte', name: 'Charlotte (Female, English)' },
+    { id: 'daniel', name: 'Daniel (Male, English)' },
+    { id: 'alice', name: 'Alice (Female, English)' },
+    { id: 'sarah', name: 'Sarah (Female, English)' },
+    { id: 'liam', name: 'Liam (Male, English)' },
+  ],
+  openai: [
+    { id: 'alloy', name: 'Alloy (Neutral)' },
+    { id: 'echo', name: 'Echo (Male)' },
+    { id: 'fable', name: 'Fable (Female)' },
+    { id: 'onyx', name: 'Onyx (Male)' },
+    { id: 'nova', name: 'Nova (Female)' },
+    { id: 'shimmer', name: 'Shimmer (Female)' },
+  ],
+  playht: [
+    { id: 'jennifer', name: 'Jennifer (Female, English)' },
+    { id: 'melissa', name: 'Melissa (Female, English)' },
+    { id: 'will', name: 'Will (Male, English)' },
+    { id: 'chris', name: 'Chris (Male, English)' },
+  ],
+  azure: [
+    { id: 'aria', name: 'Aria (Female, English)' },
+    { id: 'guy', name: 'Guy (Male, English)' },
+    { id: 'jane', name: 'Jane (Female, English)' },
+    { id: 'jason', name: 'Jason (Male, English)' },
+  ],
+};
 
 const LANGUAGE_OPTIONS = [
   { code: 'en', name: 'English' },
@@ -49,11 +79,14 @@ export function AgentsForm() {
     resolver: zodResolver(agentSchema),
     defaultValues: {
       name: '',
+      provider: '',
       voice: '',
       language: 'en',
       firstMessage: '',
     },
   });
+
+  const selectedProvider = form.watch('provider');
 
   // Get API key
   const { data: apiKeyData } = useQuery({
@@ -84,7 +117,7 @@ export function AgentsForm() {
       const agent = await vapiClient.createAgent({
         name: data.name,
         voice: {
-          provider: 'elevenlabs',
+          provider: data.provider,
           voiceId: data.voice,
         },
         language: data.language,
@@ -98,6 +131,7 @@ export function AgentsForm() {
           user_id: user.id,
           agent_id: agent.id,
           name: data.name,
+          voice_provider: data.provider,
           voice: data.voice,
           language: data.language,
         });
@@ -174,18 +208,47 @@ export function AgentsForm() {
 
             <FormField
               control={form.control}
+              name="provider"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Voice Provider</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select voice provider" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {VOICE_PROVIDERS.map((provider) => (
+                        <SelectItem key={provider.id} value={provider.id}>
+                          {provider.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="voice"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Voice</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={!selectedProvider}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a voice" />
+                        <SelectValue placeholder={selectedProvider ? "Select a voice" : "Select provider first"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {VOICE_OPTIONS.map((voice) => (
+                      {selectedProvider && VOICE_OPTIONS[selectedProvider as keyof typeof VOICE_OPTIONS]?.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>
                           {voice.name}
                         </SelectItem>
