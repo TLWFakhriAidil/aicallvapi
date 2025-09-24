@@ -78,6 +78,17 @@ serve(async (req) => {
       throw new Error('VAPI API key not found. Please configure your API keys first.');
     }
 
+    // Get user's Twilio phone configuration
+    const { data: phoneConfig, error: phoneError } = await supabaseAdmin
+      .from('phone_config')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (phoneError || !phoneConfig || !phoneConfig.twilio_phone_number || !phoneConfig.twilio_account_sid || !phoneConfig.twilio_auth_token) {
+      throw new Error('Twilio configuration not found. Please configure your Twilio phone settings first.');
+    }
+
     // Get the selected prompt
     const { data: prompt, error: promptError } = await supabaseAdmin
       .from('prompts')
@@ -232,11 +243,11 @@ serve(async (req) => {
       ]
     };
 
-    // Phone configuration
-    const phoneConfig = {
-      twilioPhoneNumber: '+17755242070', // Replace with actual Twilio number
-      twilioAccountSid: 'ACb04524fa234bd27d7ee7be008cf4be5d', // Replace with actual SID
-      twilioAuthToken: 'c9dce4c53f6b38b1c1a0b810dc5a3835', // Replace with actual token
+    // Use user's Twilio configuration
+    const twilioConfig = {
+      twilioPhoneNumber: phoneConfig.twilio_phone_number,
+      twilioAccountSid: phoneConfig.twilio_account_sid,
+      twilioAuthToken: phoneConfig.twilio_auth_token,
     };
 
     // Process calls in chunks
@@ -364,7 +375,7 @@ Only respond with the JSON.`
 
           const postData = {
             assistant: fullAssistantConfig,
-            phoneNumber: phoneConfig,
+            phoneNumber: twilioConfig,
             customer: { number: phoneNumber },
             metadata: {
               call_type: 'full_backend_cold_call',
