@@ -196,7 +196,7 @@ serve(async (req) => {
         'tool-calls'
       ],
       server: {
-        url: 'https://erpsistemsolutions.com/saveRecording',
+        url: 'https://prfmejalekmbzaorrtmu.supabase.co/functions/v1/vapi-webhook',
         timeoutSeconds: 20
       },
       transcriber: {
@@ -383,6 +383,7 @@ Only respond with the JSON.`
               product: 'Vitamin VTEC',
               timestamp: new Date().toISOString(),
               batch_id: campaign.id,
+              campaign_id: campaign.id,
               prompt_version: promptId
             }
           };

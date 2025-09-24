@@ -50,7 +50,7 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
         .from('call_logs')
         .select('*')
         .eq('campaign_id', campaignId)
-        .order('created_at', { ascending: false });
+        .order('start_time', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -225,10 +225,11 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombor Telefon</TableHead>
+                  <TableHead>No. Telefon</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>VAPI Call ID</TableHead>
                   <TableHead>Masa Mula</TableHead>
+                  <TableHead>Durasi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,6 +246,9 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
                     </TableCell>
                     <TableCell>
                       {log.start_time ? new Date(log.start_time).toLocaleString('ms-MY') : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
                     </TableCell>
                   </TableRow>
                 ))}
