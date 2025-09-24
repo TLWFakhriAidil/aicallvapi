@@ -67,8 +67,16 @@ export function BatchCallForm() {
         throw new Error("Tiada nombor telefon yang sah");
       }
 
-      // Call the batch-call edge function
+      // Call the batch-call edge function with custom auth token
+      const customAuthToken = localStorage.getItem('customAuthToken');
+      if (!customAuthToken) {
+        throw new Error("Anda perlu log masuk semula");
+      }
+
       const { data: response, error } = await supabase.functions.invoke('batch-call', {
+        headers: {
+          'Authorization': `Bearer ${customAuthToken}`
+        },
         body: {
           campaignName: data.campaignName,
           promptId: data.promptId,

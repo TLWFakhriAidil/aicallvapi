@@ -36,7 +36,8 @@ serve(async (req) => {
       .single();
     
     if (sessionError || !sessionData) {
-      throw new Error('Invalid session token');
+      console.error('Session lookup failed:', sessionError);
+      throw new Error('Invalid session token: ' + (sessionError?.message || 'Session not found'));
     }
     
     // Check if session has expired
