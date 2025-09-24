@@ -5,12 +5,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Search, Calendar, Clock } from 'lucide-react';
+import { Phone, Search, Calendar, Clock, Play, FileText, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VapiClient, VapiCallLog } from '@/lib/vapiClient';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+interface CallLog {
+  id: string;
+  call_id: string;
+  user_id: string;
+  campaign_id?: string;
+  agent_id: string;
+  caller_number: string;
+  phone_number: string;
+  vapi_call_id?: string;
+  start_time: string;
+  duration?: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  end_of_call_report?: any;
+  metadata?: {
+    recording_url?: string;
+    transcript?: string;
+    summary?: string;
+    call_cost?: number;
+    [key: string]: any;
+  };
+}
 
 interface Agent {
   id: string;
@@ -22,21 +47,22 @@ export function CallLogsTable() {
   const { user } = useCustomAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get API key
-  const { data: apiKeyData } = useQuery({
-    queryKey: ['api-keys', user?.id],
+  // Get call logs from Supabase
+  const { data: callLogs, isLoading, error } = useQuery({
+    queryKey: ['call-logs', user?.id],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user) return [];
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('call_logs')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as CallLog[];
     },
     enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Get agents
@@ -55,17 +81,6 @@ export function CallLogsTable() {
     enabled: !!user,
   });
 
-  // Get call logs from Vapi
-  const { data: callLogs, isLoading, error } = useQuery({
-    queryKey: ['call-logs', apiKeyData?.vapi_api_key],
-    queryFn: async () => {
-      if (!apiKeyData?.vapi_api_key) return [];
-      const vapiClient = new VapiClient(apiKeyData.vapi_api_key);
-      return await vapiClient.getCallLogs();
-    },
-    enabled: !!apiKeyData?.vapi_api_key,
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
 
   const getAgentName = (assistantId: string) => {
     const agent = agents?.find(a => a.agent_id === assistantId);
@@ -93,26 +108,76 @@ export function CallLogsTable() {
   };
 
   const filteredLogs = callLogs?.filter(log => 
-    log.customer.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getAgentName(log.assistantId).toLowerCase().includes(searchTerm.toLowerCase())
+    log.caller_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    getAgentName(log.agent_id).toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  if (!apiKeyData?.vapi_api_key) {
+  const renderRecordingButton = (recordingUrl?: string) => {
+    if (!recordingUrl) return <span className="text-muted-foreground">No recording</span>;
+    
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Call Logs</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <Phone className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">You need to configure your API key first to view call logs.</p>
-          <Button asChild>
-            <Link to="/api-keys">Configure API Key</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(recordingUrl, '_blank')}
+        className="flex items-center gap-2"
+      >
+        <Play className="h-4 w-4" />
+        Play
+      </Button>
     );
-  }
+  };
+
+  const renderTranscriptDialog = (transcript?: string) => {
+    if (!transcript) return <span className="text-muted-foreground">No transcript</span>;
+    
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            View
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Call Transcript</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-96 w-full">
+            <div className="whitespace-pre-wrap text-sm p-4 bg-muted rounded-md">
+              {transcript}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const renderSummaryDialog = (summary?: string) => {
+    if (!summary) return <span className="text-muted-foreground">No summary</span>;
+    
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            View
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>AI Summary</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-96 w-full">
+            <div className="whitespace-pre-wrap text-sm p-4 bg-muted rounded-md">
+              {summary}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
 
   if (error) {
     return (
@@ -163,6 +228,10 @@ export function CallLogsTable() {
                 <TableHead>Agent</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Recording</TableHead>
+                <TableHead>Transcript</TableHead>
+                <TableHead>AI Summary</TableHead>
+                <TableHead>Cost</TableHead>
                 <TableHead>Started At</TableHead>
               </TableRow>
             </TableHeader>
@@ -170,10 +239,10 @@ export function CallLogsTable() {
               {filteredLogs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">
-                    {log.customer.number || 'Unknown'}
+                    {log.caller_number || 'Unknown'}
                   </TableCell>
                   <TableCell>
-                    {getAgentName(log.assistantId)}
+                    {getAgentName(log.agent_id)}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(log.status)}
@@ -182,11 +251,28 @@ export function CallLogsTable() {
                     {formatDuration(log.duration)}
                   </TableCell>
                   <TableCell>
+                    {renderRecordingButton(log.metadata?.recording_url)}
+                  </TableCell>
+                  <TableCell>
+                    {renderTranscriptDialog(log.metadata?.transcript)}
+                  </TableCell>
+                  <TableCell>
+                    {renderSummaryDialog(log.metadata?.summary)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {log.metadata?.call_cost ? `$${log.metadata.call_cost.toFixed(4)}` : 'N/A'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(log.startedAt).toLocaleDateString()}
+                      {new Date(log.start_time).toLocaleDateString()}
                       <Clock className="h-4 w-4 ml-2 mr-1" />
-                      {new Date(log.startedAt).toLocaleTimeString()}
+                      {new Date(log.start_time).toLocaleTimeString()}
                     </div>
                   </TableCell>
                 </TableRow>
