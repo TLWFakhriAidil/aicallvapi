@@ -397,6 +397,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      increment_campaign_failed: {
+        Args: { campaign_id: string }
+        Returns: undefined
+      }
+      increment_campaign_success: {
+        Args: { campaign_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
