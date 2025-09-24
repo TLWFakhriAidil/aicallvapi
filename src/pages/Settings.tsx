@@ -16,10 +16,13 @@ import {
   Shield,
   CreditCard,
   Trash2,
-  Save
+  Save,
+  Key
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { ApiKeysForm } from '@/components/api-keys/ApiKeysForm';
+import { PhoneConfigForm } from '@/components/settings/PhoneConfigForm';
 
 export default function Settings() {
   const { user, signOut } = useCustomAuth();
@@ -106,10 +109,14 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="api-config" className="flex items-center space-x-2">
+            <Key className="h-4 w-4" />
+            <span>API Config</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center space-x-2">
             <Bell className="h-4 w-4" />
@@ -194,6 +201,14 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* API Configuration Tab */}
+        <TabsContent value="api-config" className="space-y-6">
+          <div className="space-y-6">
+            <ApiKeysForm />
+            <PhoneConfigForm />
+          </div>
         </TabsContent>
 
         {/* Notifications Tab */}

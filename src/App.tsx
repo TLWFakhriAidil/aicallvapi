@@ -13,7 +13,6 @@ import ChangePassword from "./pages/settings/ChangePassword";
 import Dashboard from "./pages/Dashboard";
 import CreateAgent from "./pages/CreateAgent";
 import ManageApiKeys from "./pages/ManageApiKeys";
-import ApiKeysPage from "./pages/api-keys";
 import ChatPage from "./pages/chat";
 import CallLogsOld from '@/pages/CallLogs';
 import AgentsPage from '@/pages/agents';
@@ -69,17 +68,9 @@ function App() {
                       <ManageApiKeys />
                     </CustomProtectedRoute>
                   } 
-                />
-                <Route 
-                  path="/api-keys" 
-                  element={
-                    <CustomProtectedRoute>
-                      <ApiKeysPage />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/chat" 
+                 />
+                 <Route 
+                   path="/chat"
                   element={
                     <CustomProtectedRoute>
                       <ChatPage />

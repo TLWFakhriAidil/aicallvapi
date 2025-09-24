@@ -238,6 +238,36 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_config: {
+        Row: {
+          created_at: string
+          id: string
+          twilio_account_sid: string
+          twilio_auth_token: string
+          twilio_phone_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          twilio_account_sid: string
+          twilio_auth_token: string
+          twilio_phone_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          twilio_account_sid?: string
+          twilio_auth_token?: string
+          twilio_phone_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company: string | null
