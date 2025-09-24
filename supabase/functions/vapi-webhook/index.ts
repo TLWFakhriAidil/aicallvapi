@@ -215,11 +215,68 @@ async function processEndOfCallReport(supabase: any, message: any) {
     // Convert duration to integer (round to nearest second)
     const durationSeconds = message.durationSeconds ? Math.round(parseFloat(message.durationSeconds)) : 0
 
+    // Determine user_id for call log
+    let userId: string | null = null;
+    try {
+      if (campaignId) {
+        const { data: campaignRow, error: campaignErr } = await supabase
+          .from('campaigns')
+          .select('user_id')
+          .eq('id', campaignId)
+          .maybeSingle();
+        if (campaignErr) {
+          console.error('Error fetching campaign user_id:', campaignErr);
+        }
+        if (campaignRow?.user_id) {
+          userId = campaignRow.user_id;
+        }
+      }
+      if (!userId && phoneNumber) {
+        const { data: numberRow, error: numberErr } = await supabase
+          .from('numbers')
+          .select('user_id')
+          .eq('phone_number', phoneNumber)
+          .maybeSingle();
+        if (numberErr) {
+          console.error('Error fetching numbers user_id:', numberErr);
+        }
+        if (numberRow?.user_id) {
+          userId = numberRow.user_id;
+        }
+      }
+      if (!userId) {
+        const assistantId = message.call?.assistantId || null;
+        if (assistantId) {
+          const { data: apiRow, error: apiErr } = await supabase
+            .from('api_keys')
+            .select('user_id')
+            .eq('assistant_id', assistantId)
+            .maybeSingle();
+          if (apiErr) {
+            console.error('Error fetching api_keys user_id:', apiErr);
+          }
+          if (apiRow?.user_id) {
+            userId = apiRow.user_id;
+          }
+        }
+      }
+    } catch (uidErr) {
+      console.error('Error resolving user_id for call log:', uidErr);
+    }
+
+    if (!userId) {
+      console.error('END OF CALL: Could not resolve user_id; skipping insert');
+      return new Response(
+        JSON.stringify({ status: 'error', message: 'Could not resolve user_id' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      )
+    }
+
     // Insert call log record
     const { data: callLog, error } = await supabase
       .from('call_logs')
       .insert({
-        user_id: null, // Will be set based on campaign if available
+        user_id: userId,
         campaign_id: campaignId,
         call_id: vapiCallId || `vapi_${Date.now()}`,
         agent_id: message.call?.assistantId || 'unknown',
