@@ -17,7 +17,6 @@ import { Phone, Users, Zap } from "lucide-react";
 const batchCallSchema = z.object({
   campaignName: z.string().min(1, "Nama kempen diperlukan"),
   promptId: z.string().min(1, "Sila pilih prompt"),
-  agentId: z.string().min(1, "Sila pilih voice agent"),
   phoneNumbers: z.string().min(1, "Senarai nombor telefon diperlukan"),
   concurrentLimit: z.number().min(1).max(50).default(10),
 });
@@ -33,7 +32,6 @@ export function BatchCallForm() {
     defaultValues: {
       campaignName: "",
       promptId: "",
-      agentId: "",
       phoneNumbers: "",
       concurrentLimit: 10,
     },
@@ -57,23 +55,6 @@ export function BatchCallForm() {
     enabled: !!user,
   });
 
-  // Fetch available agents
-  const { data: agents, isLoading: agentsLoading } = useQuery({
-    queryKey: ["agents", user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error("User not authenticated");
-
-      const { data, error } = await supabase
-        .from('agents')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
 
   const batchCallMutation = useMutation({
     mutationFn: async (data: BatchCallFormData) => {
@@ -100,7 +81,6 @@ export function BatchCallForm() {
         body: {
           campaignName: data.campaignName,
           promptId: data.promptId,
-          agentId: data.agentId,
           phoneNumbers: phoneNumbers,
           concurrentLimit: data.concurrentLimit,
         }
@@ -260,7 +240,7 @@ export function BatchCallForm() {
 
               <Button
                 type="submit"
-                disabled={isSubmitting || batchCallMutation.isPending || !prompts || prompts.length === 0 || !agents || agents.length === 0}
+                disabled={isSubmitting || batchCallMutation.isPending || !prompts || prompts.length === 0}
                 className="w-full"
                 size="lg"
               >
