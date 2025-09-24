@@ -24,6 +24,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKeysForm } from '@/components/api-keys/ApiKeysForm';
 import { PhoneConfigForm } from '@/components/settings/PhoneConfigForm';
+import { VoiceProviderSettings } from '@/components/settings/VoiceProviderSettings';
 import { ChangePasswordSection } from '@/components/ChangePasswordSection';
 import { Header } from '@/components/Header';
 
@@ -115,7 +116,7 @@ export default function Settings() {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="profile" className="flex items-center space-x-2">
                 <User className="h-4 w-4" />
                 <span>Profile</span>
@@ -127,6 +128,10 @@ export default function Settings() {
               <TabsTrigger value="api-config" className="flex items-center space-x-2">
                 <Key className="h-4 w-4" />
                 <span>API Config</span>
+              </TabsTrigger>
+              <TabsTrigger value="voice-providers" className="flex items-center space-x-2">
+                <SettingsIcon className="h-4 w-4" />
+                <span>Voice</span>
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center space-x-2">
                 <Bell className="h-4 w-4" />
@@ -224,6 +229,11 @@ export default function Settings() {
             <ApiKeysForm />
             <PhoneConfigForm />
           </div>
+        </TabsContent>
+
+        {/* Voice Providers Tab */}
+        <TabsContent value="voice-providers" className="space-y-6">
+          <VoiceProviderSettings />
         </TabsContent>
 
         {/* Notifications Tab */}
