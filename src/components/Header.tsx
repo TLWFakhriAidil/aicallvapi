@@ -1,5 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Menu, X, User, LogOut, Settings, Phone } from "lucide-react";
+import { 
+  Bot, 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Settings, 
+  BarChart3, 
+  MessageSquare, 
+  Phone, 
+  Zap,
+  FileText,
+  Home 
+} from "lucide-react";
 import { useState } from "react";
 import { useCustomAuth } from "@/contexts/CustomAuthContext";
 import { 
@@ -10,15 +23,28 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+
+// Define main navigation items
+const mainNavItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: Home },
+  { to: '/campaigns', label: 'Campaigns', icon: BarChart3 },
+  { to: '/prompts', label: 'Prompts', icon: FileText },
+  { to: '/batch-call', label: 'Batch Call', icon: Zap },
+  { to: '/call-logs', label: 'Call Logs', icon: Phone },
+  { to: '/chat', label: 'Chat', icon: MessageSquare },
+];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useCustomAuth();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const isActivePath = (path: string) => location.pathname === path;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -33,19 +59,38 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-sm font-medium hover:text-primary transition-smooth">
-              Features
-            </a>
-            <a href="#pricing" className="text-sm font-medium hover:text-primary transition-smooth">
-              Pricing
-            </a>
-            <Link to="/call-logs" className="text-sm font-medium hover:text-primary transition-smooth">
-              Call Logs
-            </Link>
-            <a href="#contact" className="text-sm font-medium hover:text-primary transition-smooth">
-              Contact
-            </a>
+          <nav className="hidden md:flex items-center space-x-1">
+            {user ? (
+              // Authenticated user navigation
+              <>
+                {mainNavItems.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-smooth ${
+                      isActivePath(item.to)
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </>
+            ) : (
+              // Public navigation for non-authenticated users
+              <>
+                <a href="#features" className="px-3 py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  Features
+                </a>
+                <a href="#pricing" className="px-3 py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  Pricing
+                </a>
+                <a href="#contact" className="px-3 py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  Contact
+                </a>
+              </>
+            )}
           </nav>
 
           {/* Desktop CTA Buttons */}
@@ -70,26 +115,8 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard">
-                      <User className="mr-2 h-4 w-4" />
+                      <Home className="mr-2 h-4 w-4" />
                       Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/agents">
-                      <Bot className="mr-2 h-4 w-4" />
-                      Voice Agents
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/numbers">
-                      <Phone className="mr-2 h-4 w-4" />
-                      Phone Numbers
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/api-keys">
-                      <Settings className="mr-2 h-4 w-4" />
-                      API Keys
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -133,41 +160,72 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col space-y-4">
-              <a href="#features" className="text-sm font-medium hover:text-primary transition-smooth">
-                Features
-              </a>
-              <a href="#pricing" className="text-sm font-medium hover:text-primary transition-smooth">
-                Pricing
-              </a>
-              <Link to="/call-logs" className="text-sm font-medium hover:text-primary transition-smooth">
-                Call Logs
-              </Link>
-              <a href="#contact" className="text-sm font-medium hover:text-primary transition-smooth">
-                Contact
-              </a>
-              <div className="flex flex-col space-y-2 pt-4">
-                {user ? (
-                  <>
+          <div className="md:hidden py-4 border-t bg-background/95 backdrop-blur">
+            <nav className="flex flex-col space-y-2">
+              {user ? (
+                // Authenticated mobile navigation
+                <>
+                  {mainNavItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        className={`flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium transition-smooth ${
+                          isActivePath(item.to)
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                  <div className="pt-4 border-t border-border space-y-2">
+                    <Link
+                      to="/settings"
+                      className="flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-smooth"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-smooth w-full"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // Public mobile navigation
+                <>
+                  <a href="#features" className="px-3 py-3 text-sm font-medium hover:text-primary transition-smooth">
+                    Features
+                  </a>
+                  <a href="#pricing" className="px-3 py-3 text-sm font-medium hover:text-primary transition-smooth">
+                    Pricing
+                  </a>
+                  <a href="#contact" className="px-3 py-3 text-sm font-medium hover:text-primary transition-smooth">
+                    Contact
+                  </a>
+                  <div className="flex flex-col space-y-2 pt-4 border-t border-border">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to="/dashboard">Dashboard</Link>
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleSignOut}>
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/login">Log In</Link>
+                      <Link to="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                     </Button>
                     <Button variant="hero" size="sm" asChild>
-                      <Link to="/signup">Get Started</Link>
+                      <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Get Started</Link>
                     </Button>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </nav>
           </div>
         )}
