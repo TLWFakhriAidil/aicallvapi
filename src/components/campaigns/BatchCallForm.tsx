@@ -197,40 +197,6 @@ export function BatchCallForm() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="agentId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pilih Voice Agent</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih voice agent untuk kempen ini" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {agentsLoading ? (
-                            <SelectItem value="loading" disabled>
-                              Memuat agents...
-                            </SelectItem>
-                          ) : agents?.length === 0 ? (
-                            <SelectItem value="no-agents" disabled>
-                              Tiada agents dijumpai. Cipta agent dahulu.
-                            </SelectItem>
-                          ) : (
-                            agents?.map((agent) => (
-                              <SelectItem key={agent.agent_id} value={agent.agent_id}>
-                                {agent.name} ({agent.voice_provider} - {agent.voice})
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
 
               <FormField
