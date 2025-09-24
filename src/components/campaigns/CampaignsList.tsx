@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomAuth } from "@/contexts/CustomAuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,11 +11,11 @@ import { CampaignDetails } from "./CampaignDetails";
 
 export function CampaignsList() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const { user } = useCustomAuth();
 
   const { data: campaigns, isLoading } = useQuery({
-    queryKey: ["campaigns"],
+    queryKey: ["campaigns", user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       // First get campaigns
@@ -50,6 +51,7 @@ export function CampaignsList() {
 
       return campaignsWithPrompts;
     },
+    enabled: !!user,
   });
 
   const getStatusBadge = (status: string) => {
