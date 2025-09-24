@@ -3,20 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Bot, Phone, Zap, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Header } from '@/components/Header';
 
 export default function Dashboard() {
   const { user } = useCustomAuth();
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Welcome back!
-        </h1>
-        <p className="text-muted-foreground">
-          Ready to build some amazing voice agents?
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Welcome back!
+            </h1>
+            <p className="text-muted-foreground">
+              Ready to build some amazing voice agents?
+            </p>
+          </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -82,7 +86,7 @@ export default function Dashboard() {
                 personality, and connect it to your business logic.
               </p>
               <Button className="w-full" asChild>
-                <Link to="/create-agent">Create Agent</Link>
+                <Link to="/settings">Go to Settings</Link>
               </Button>
             </div>
           </CardContent>
@@ -105,12 +109,14 @@ export default function Dashboard() {
                 powerful voice agents with AI capabilities.
               </p>
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/api-keys">Manage API Keys</Link>
+                <Link to="/settings">Configure Settings</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -17,12 +17,15 @@ import {
   CreditCard,
   Trash2,
   Save,
-  Key
+  Key,
+  Lock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKeysForm } from '@/components/api-keys/ApiKeysForm';
 import { PhoneConfigForm } from '@/components/settings/PhoneConfigForm';
+import { ChangePasswordSection } from '@/components/ChangePasswordSection';
+import { Header } from '@/components/Header';
 
 export default function Settings() {
   const { user, signOut } = useCustomAuth();
@@ -87,50 +90,57 @@ export default function Settings() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <Link 
-          to="/dashboard" 
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Link>
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="hero-gradient p-2 rounded-lg">
-            <SettingsIcon className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <Link 
+              to="/dashboard" 
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="hero-gradient p-2 rounded-lg">
+                <SettingsIcon className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Manage your account preferences and application settings
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        </div>
-        <p className="text-muted-foreground">
-          Manage your account preferences and application settings
-        </p>
-      </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile" className="flex items-center space-x-2">
-            <User className="h-4 w-4" />
-            <span>Profile</span>
-          </TabsTrigger>
-          <TabsTrigger value="api-config" className="flex items-center space-x-2">
-            <Key className="h-4 w-4" />
-            <span>API Config</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center space-x-2">
-            <Bell className="h-4 w-4" />
-            <span>Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <span>Privacy</span>
-          </TabsTrigger>
-          <TabsTrigger value="billing" className="flex items-center space-x-2">
-            <CreditCard className="h-4 w-4" />
-            <span>Billing</span>
-          </TabsTrigger>
-        </TabsList>
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="profile" className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="password" className="flex items-center space-x-2">
+                <Lock className="h-4 w-4" />
+                <span>Password</span>
+              </TabsTrigger>
+              <TabsTrigger value="api-config" className="flex items-center space-x-2">
+                <Key className="h-4 w-4" />
+                <span>API Config</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center space-x-2">
+                <Bell className="h-4 w-4" />
+                <span>Notifications</span>
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="flex items-center space-x-2">
+                <Shield className="h-4 w-4" />
+                <span>Privacy</span>
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="flex items-center space-x-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Billing</span>
+              </TabsTrigger>
+            </TabsList>
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
@@ -201,6 +211,11 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Password Tab */}
+        <TabsContent value="password" className="space-y-6">
+          <ChangePasswordSection />
         </TabsContent>
 
         {/* API Configuration Tab */}
@@ -448,7 +463,9 @@ export default function Settings() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </div>
+      </main>
     </div>
   );
 }

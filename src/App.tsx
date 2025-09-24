@@ -9,14 +9,8 @@ import { CustomProtectedRoute } from "@/components/layout/CustomProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ChangePassword from "./pages/settings/ChangePassword";
 import Dashboard from "./pages/Dashboard";
-import CreateAgent from "./pages/CreateAgent";
-import ManageApiKeys from "./pages/ManageApiKeys";
 import ChatPage from "./pages/chat";
-import CallLogsOld from '@/pages/CallLogs';
-import AgentsPage from '@/pages/agents';
-import NumbersPage from '@/pages/numbers';
 import CallLogsPage from '@/pages/call-logs';
 import PromptsPage from './pages/prompts';
 import CampaignsPage from './pages/campaigns';
@@ -53,22 +47,6 @@ function App() {
                     </CustomProtectedRoute>
                   } 
                 />
-                <Route 
-                  path="/create-agent" 
-                  element={
-                    <CustomProtectedRoute>
-                      <CreateAgent />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/manage-api-keys" 
-                  element={
-                    <CustomProtectedRoute>
-                      <ManageApiKeys />
-                    </CustomProtectedRoute>
-                  } 
-                 />
                  <Route 
                    path="/chat"
                   element={
@@ -78,34 +56,10 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/call-logs-old" 
-                  element={
-                    <CustomProtectedRoute>
-                      <CallLogsOld />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
                   path="/call-logs" 
                   element={
                     <CustomProtectedRoute>
                       <CallLogsPage />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/agents" 
-                  element={
-                    <CustomProtectedRoute>
-                      <AgentsPage />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/numbers" 
-                  element={
-                    <CustomProtectedRoute>
-                      <NumbersPage />
                     </CustomProtectedRoute>
                   } 
                 />
@@ -138,14 +92,6 @@ function App() {
                   element={
                     <CustomProtectedRoute>
                       <Settings />
-                    </CustomProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/settings/password" 
-                  element={
-                    <CustomProtectedRoute>
-                      <ChangePassword />
                     </CustomProtectedRoute>
                   } 
                 />
