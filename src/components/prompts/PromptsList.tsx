@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomAuth } from "@/contexts/CustomAuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,12 +13,12 @@ import { PromptsForm } from "./PromptsForm";
 export function PromptsList() {
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const { user } = useCustomAuth();
   const queryClient = useQueryClient();
 
   const { data: prompts, isLoading } = useQuery({
-    queryKey: ["prompts"],
+    queryKey: ["prompts", user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       const { data, error } = await supabase
@@ -29,6 +30,7 @@ export function PromptsList() {
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   const deleteMutation = useMutation({
@@ -42,7 +44,7 @@ export function PromptsList() {
     },
     onSuccess: () => {
       toast.success("Prompt berjaya dipadam!");
-      queryClient.invalidateQueries({ queryKey: ["prompts"] });
+      queryClient.invalidateQueries({ queryKey: ["prompts", user?.id] });
     },
     onError: (error: any) => {
       toast.error("Gagal memadam prompt: " + error.message);

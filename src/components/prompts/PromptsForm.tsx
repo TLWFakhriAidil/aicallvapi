@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomAuth } from "@/contexts/CustomAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -28,6 +29,7 @@ interface PromptsFormProps {
 
 export function PromptsForm({ prompt, onClose, onSuccess }: PromptsFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useCustomAuth();
   const queryClient = useQueryClient();
 
   const form = useForm<PromptFormData>({
@@ -41,7 +43,6 @@ export function PromptsForm({ prompt, onClose, onSuccess }: PromptsFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: PromptFormData) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       if (prompt?.id) {
@@ -73,7 +74,7 @@ export function PromptsForm({ prompt, onClose, onSuccess }: PromptsFormProps) {
     },
     onSuccess: () => {
       toast.success(prompt?.id ? "Prompt berjaya dikemaskini!" : "Prompt berjaya dicipta!");
-      queryClient.invalidateQueries({ queryKey: ["prompts"] });
+      queryClient.invalidateQueries({ queryKey: ["prompts", user?.id] });
       onSuccess?.();
       onClose?.();
     },
