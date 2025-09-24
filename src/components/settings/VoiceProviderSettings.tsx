@@ -349,7 +349,16 @@ export function VoiceProviderSettings() {
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(provider.status)}
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: 'Provider Configuration',
+                        description: `Configure ${provider.name} settings here. This will redirect to the provider configuration.`,
+                      });
+                    }}
+                  >
                     <Settings className="h-4 w-4 mr-1" />
                     Configure
                   </Button>
@@ -428,10 +437,10 @@ export function VoiceProviderSettings() {
                       value={newAgent.voiceProvider} 
                       onValueChange={(value) => setNewAgent({ ...newAgent, voiceProvider: value, voice: '' })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background">
                         <SelectValue placeholder="Select a voice provider" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background z-50">
                         <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
                         <SelectItem value="openai">OpenAI</SelectItem>
                         <SelectItem value="playht">PlayHT</SelectItem>
@@ -446,10 +455,10 @@ export function VoiceProviderSettings() {
                         value={newAgent.voice} 
                         onValueChange={(value) => setNewAgent({ ...newAgent, voice: value })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Select a voice" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background z-50">
                           {getVoiceOptions(newAgent.voiceProvider).map((voice) => (
                             <SelectItem key={voice.value} value={voice.value}>
                               {voice.label}
