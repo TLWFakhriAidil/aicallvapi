@@ -10,6 +10,9 @@ max_rows = 1000
 [functions.batch-call]
 verify_jwt = false
 
+[functions.vapi-webhook]
+verify_jwt = false
+
 [db]
 port = 54322
 
