@@ -101,6 +101,49 @@ serve(async (req) => {
       throw new Error('Prompt not found');
     }
 
+    // Try to get user's voice config (from agents table)
+    const { data: userAgent, error: agentError } = await supabaseAdmin
+      .from('agents')
+      .select('voice_provider, voice, agent_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    // Default voice (hardcoded ElevenLabs config)
+    const defaultVoice = {
+      provider: '11labs',
+      voiceId: 'Kci88S94DOa31YrdXiWR',
+      model: 'eleven_flash_v2_5',
+      stability: 0.8,
+      similarityBoost: 1,
+      style: 0.0,
+      useSpeakerBoost: false,
+      speed: 0.8,
+      optimizeStreamingLatency: 4,
+      autoMode: true,
+      inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
+    };
+
+    // Use user config if exists, else fallback to default
+    const selectedVoice = (userAgent && userAgent.voice_provider && userAgent.voice)
+      ? {
+          provider: userAgent.voice_provider === 'elevenlabs' ? '11labs' : userAgent.voice_provider,
+          voiceId: userAgent.voice,
+          model: userAgent.voice_provider === 'elevenlabs' ? 'eleven_flash_v2_5' : 
+                 userAgent.voice_provider === 'openai' ? 'gpt-4o-realtime' :
+                 userAgent.voice_provider === 'playht' ? 'PlayHT2.0-turbo' :
+                 userAgent.voice_provider === 'azure' ? 'azure' : defaultVoice.model,
+          stability: 0.8,
+          similarityBoost: 1,
+          style: 0.0,
+          useSpeakerBoost: false,
+          speed: 0.8,
+          optimizeStreamingLatency: 4,
+          autoMode: true,
+          inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
+        }
+      : defaultVoice;
+
     // Validate and format phone numbers
     const validPhones: string[] = [];
     const invalidPhones: string[] = [];
@@ -163,19 +206,7 @@ serve(async (req) => {
         model: 'gpt-4o-mini',
         temperature: 0.6
       },
-      voice: {
-        provider: '11labs',
-        voiceId: 'Kci88S94DOa31YrdXiWR',
-        model: 'eleven_flash_v2_5',
-        stability: 0.8,
-        similarityBoost: 1,
-        style: 0.0,
-        useSpeakerBoost: false,
-        speed: 0.8,
-        optimizeStreamingLatency: 4,
-        autoMode: true,
-        inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
-      },
+      voice: selectedVoice,
       firstMessage: prompt.first_message,
       firstMessageMode: 'assistant-speaks-first',
       endCallMessage: 'Okay , terima kasih dan selamat sejahtera',

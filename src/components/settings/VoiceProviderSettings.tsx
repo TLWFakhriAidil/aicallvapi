@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +39,12 @@ export function VoiceProviderSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [testingVoice, setTestingVoice] = useState<string | null>(null);
+  const [newAgentDialogOpen, setNewAgentDialogOpen] = useState(false);
+  const [newAgent, setNewAgent] = useState({
+    name: '',
+    voiceProvider: '',
+    voice: ''
+  });
 
   // Get API key
   const { data: apiKeyData } = useQuery({
@@ -143,9 +153,124 @@ export function VoiceProviderSettings() {
     }
   });
 
+  const createAgentMutation = useMutation({
+    mutationFn: async (agentData: typeof newAgent) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('agents')
+        .insert({
+          user_id: user.id,
+          name: agentData.name,
+          voice_provider: agentData.voiceProvider,
+          voice: agentData.voice,
+          agent_id: `agent_${Date.now()}`
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Voice Agent Added',
+        description: 'New voice agent has been configured successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+      setNewAgentDialogOpen(false);
+      setNewAgent({ name: '', voiceProvider: '', voice: '' });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const deleteAgentMutation = useMutation({
+    mutationFn: async (agentId: string) => {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('agent_id', agentId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Voice Agent Deleted',
+        description: 'Voice agent has been removed successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
   const handleTestVoice = (agentId: string) => {
     setTestingVoice(agentId);
     testVoiceMutation.mutate(agentId);
+  };
+
+  const handleCreateAgent = () => {
+    if (!newAgent.name || !newAgent.voiceProvider || !newAgent.voice) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    createAgentMutation.mutate(newAgent);
+  };
+
+  const handleDeleteAgent = (agentId: string) => {
+    deleteAgentMutation.mutate(agentId);
+  };
+
+  const getVoiceOptions = (provider: string) => {
+    switch (provider) {
+      case 'elevenlabs':
+        return [
+          { value: '9BWtsMINqrJLrRacOk9x', label: 'Aria' },
+          { value: 'CwhRBWXzGAHq8TQ4Fs17', label: 'Roger' },
+          { value: 'EXAVITQu4vr4xnSDxMaL', label: 'Sarah' },
+          { value: 'FGY2WhTYpPnrIDTdsKH5', label: 'Laura' },
+          { value: 'IKne3meq5aSn9XLyUdCD', label: 'Charlie' },
+          { value: 'Kci88S94DOa31YrdXiWR', label: 'Default Voice' }
+        ];
+      case 'openai':
+        return [
+          { value: 'alloy', label: 'Alloy' },
+          { value: 'echo', label: 'Echo' },
+          { value: 'fable', label: 'Fable' },
+          { value: 'onyx', label: 'Onyx' },
+          { value: 'nova', label: 'Nova' },
+          { value: 'shimmer', label: 'Shimmer' }
+        ];
+      case 'playht':
+        return [
+          { value: 'larry', label: 'Larry' },
+          { value: 'donna', label: 'Donna' },
+          { value: 'ryan', label: 'Ryan' }
+        ];
+      case 'azure':
+        return [
+          { value: 'zh-CN-XiaoxiaoNeural', label: 'Xiaoxiao (Chinese)' },
+          { value: 'en-US-JennyNeural', label: 'Jenny (English)' },
+          { value: 'ms-MY-YasminNeural', label: 'Yasmin (Malay)' }
+        ];
+      default:
+        return [];
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -251,7 +376,12 @@ export function VoiceProviderSettings() {
                         >
                           {testingVoice === voice.id ? 'Testing...' : 'Test Voice'}
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteAgent(voice.id)}
+                          disabled={deleteAgentMutation.isPending}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -268,10 +398,81 @@ export function VoiceProviderSettings() {
             <p className="text-sm text-muted-foreground">
               Add more voices by creating new agents with different providers
             </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Voice
-            </Button>
+            <Dialog open={newAgentDialogOpen} onOpenChange={setNewAgentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Voice
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Voice Agent</DialogTitle>
+                  <DialogDescription>
+                    Configure a new voice agent for your campaigns
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="agent-name">Agent Name</Label>
+                    <Input
+                      id="agent-name"
+                      placeholder="Enter agent name"
+                      value={newAgent.name}
+                      onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="voice-provider">Voice Provider</Label>
+                    <Select 
+                      value={newAgent.voiceProvider} 
+                      onValueChange={(value) => setNewAgent({ ...newAgent, voiceProvider: value, voice: '' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a voice provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
+                        <SelectItem value="openai">OpenAI</SelectItem>
+                        <SelectItem value="playht">PlayHT</SelectItem>
+                        <SelectItem value="azure">Azure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {newAgent.voiceProvider && (
+                    <div>
+                      <Label htmlFor="voice">Voice</Label>
+                      <Select 
+                        value={newAgent.voice} 
+                        onValueChange={(value) => setNewAgent({ ...newAgent, voice: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a voice" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getVoiceOptions(newAgent.voiceProvider).map((voice) => (
+                            <SelectItem key={voice.value} value={voice.value}>
+                              {voice.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button variant="outline" onClick={() => setNewAgentDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateAgent}
+                      disabled={createAgentMutation.isPending}
+                    >
+                      {createAgentMutation.isPending ? 'Adding...' : 'Add Agent'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>
