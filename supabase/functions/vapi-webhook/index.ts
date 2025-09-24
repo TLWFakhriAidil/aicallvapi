@@ -212,6 +212,9 @@ async function processEndOfCallReport(supabase: any, message: any) {
     // Get VAPI call ID
     const vapiCallId = message.call?.id || message.id
 
+    // Convert duration to integer (round to nearest second)
+    const durationSeconds = message.durationSeconds ? Math.round(parseFloat(message.durationSeconds)) : 0
+
     // Insert call log record
     const { data: callLog, error } = await supabase
       .from('call_logs')
@@ -224,7 +227,7 @@ async function processEndOfCallReport(supabase: any, message: any) {
         phone_number: phoneNumber,
         vapi_call_id: vapiCallId,
         start_time: message.call?.createdAt || new Date().toISOString(),
-        duration: message.durationSeconds || 0,
+        duration: durationSeconds,
         status: evaluationStatus.toLowerCase(),
         end_of_call_report: message,
         metadata: {
