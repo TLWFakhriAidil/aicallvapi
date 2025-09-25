@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Phone, CheckCircle, XCircle, Clock, BarChart3, ExternalLink, MessageCircle, DollarSign } from "lucide-react";
+import { ArrowLeft, Phone, CheckCircle, XCircle, Clock, BarChart3 } from "lucide-react";
 
 interface CampaignDetailsProps {
   campaignId: string;
@@ -71,33 +71,6 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Gagal</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'RM0.00';
-    return `RM${amount.toFixed(2)}`;
-  };
-
-  const getEndReasonBadge = (endReason: string | null) => {
-    if (!endReason) return <Badge variant="outline">-</Badge>;
-    
-    switch (endReason.toLowerCase()) {
-      case 'hangup':
-      case 'customer-hangup':
-        return <Badge variant="secondary">Tutup Telefon</Badge>;
-      case 'assistant-hangup':
-        return <Badge variant="default">Selesai Normal</Badge>;
-      case 'timeout':
-        return <Badge variant="destructive">Timeout</Badge>;
-      case 'error':
-        return <Badge variant="destructive">Ralat</Badge>;
-      case 'no-answer':
-        return <Badge variant="outline">Tiada Jawapan</Badge>;
-      case 'busy':
-        return <Badge variant="outline">Talian Sibuk</Badge>;
-      default:
-        return <Badge variant="outline">{endReason}</Badge>;
     }
   };
 
@@ -249,78 +222,38 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
               <p className="text-muted-foreground">Tiada log panggilan dijumpai untuk kempen ini.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>No. Telefon</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Sebab Tamat</TableHead>
-                    <TableHead>Masa Mula</TableHead>
-                    <TableHead>Masa Tamat</TableHead>
-                    <TableHead>Durasi</TableHead>
-                    <TableHead>Kos</TableHead>
-                    <TableHead>VAPI Call ID</TableHead>
-                    <TableHead>Tindakan</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>No. Telefon</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>VAPI Call ID</TableHead>
+                  <TableHead>Masa Mula</TableHead>
+                  <TableHead>Durasi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {callLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="font-medium">
+                      {log.phone_number || log.caller_number}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(log.status)}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {log.vapi_call_id || '-'}
+                    </TableCell>
+                    <TableCell>
+                      {log.start_time ? new Date(log.start_time).toLocaleString('ms-MY') : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {callLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-medium">
-                        {log.phone_number || log.caller_number}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(log.status)}
-                      </TableCell>
-                      <TableCell>
-                        {getEndReasonBadge(log.end_reason)}
-                      </TableCell>
-                      <TableCell>
-                        {log.start_time ? new Date(log.start_time).toLocaleString('ms-MY') : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {log.end_time ? new Date(log.end_time).toLocaleString('ms-MY') : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3 text-green-600" />
-                          <span className="text-green-600 font-medium">
-                            {formatCurrency(log.cost)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {log.vapi_call_id ? (
-                          <div className="max-w-[100px] truncate" title={log.vapi_call_id}>
-                            {log.vapi_call_id}
-                          </div>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {log.vapi_call_id && (
-                            <Button variant="outline" size="sm" className="h-8 px-2">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Lihat
-                            </Button>
-                          )}
-                          {log.transcript && (
-                            <Button variant="outline" size="sm" className="h-8 px-2">
-                              <MessageCircle className="h-3 w-3 mr-1" />
-                              Transkrip
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
