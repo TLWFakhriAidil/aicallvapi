@@ -11,10 +11,13 @@ import {
   Phone, 
   Zap,
   FileText,
-  Home 
+  Home,
+  Moon,
+  Sun 
 } from "lucide-react";
 import { useState } from "react";
 import { useCustomAuth } from "@/contexts/CustomAuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -38,6 +41,7 @@ const mainNavItems = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useCustomAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const handleSignOut = async () => {
@@ -95,6 +99,21 @@ export function Header() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Dark Mode Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="h-8 w-8 p-0"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+            
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -202,11 +221,23 @@ export function Header() {
                       <LogOut className="h-4 w-4" />
                       <span>Sign Out</span>
                     </button>
-                  </div>
-                </>
-              ) : (
-                // Public mobile navigation
-                <>
+                   </div>
+                 </>
+               ) : (
+                 // Public mobile navigation
+                 <>
+                   {/* Mobile Dark Mode Toggle */}
+                   <button
+                     onClick={toggleTheme}
+                     className="flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-smooth w-full"
+                   >
+                     {theme === 'dark' ? (
+                       <Sun className="h-4 w-4" />
+                     ) : (
+                       <Moon className="h-4 w-4" />
+                     )}
+                     <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                   </button>
                   <a href="#features" className="px-3 py-3 text-sm font-medium hover:text-primary transition-smooth">
                     Features
                   </a>
