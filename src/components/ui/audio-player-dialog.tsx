@@ -164,6 +164,8 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
             controls
             playsInline
             onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration || 0)}
+            onTimeUpdate={(e) => setCurrentTime((e.target as HTMLAudioElement).currentTime)}
+            onEnded={() => setIsPlaying(false)}
             onError={(e) => { console.error('Audio loading error:', e, 'URL:', recordingUrl); setError('Gagal memuat audio.'); }}
           >
             <source src={recordingUrl} type={getAudioMimeType(recordingUrl)} />
