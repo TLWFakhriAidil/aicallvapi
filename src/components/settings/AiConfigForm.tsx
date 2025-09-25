@@ -24,15 +24,7 @@ const phoneConfigSchema = z.object({
 
 // Schema for voice configuration
 const voiceConfigSchema = z.object({
-  country_code: z.string().default('+60'),
-  default_name: z.string().default('AI Assistant'),
-  concurrent_limit: z.number().min(1).max(10).default(3),
   manual_voice_id: z.string().optional(),
-  provider: z.string().default('11labs'),
-  style: z.number().min(0).max(1).default(0.0),
-  use_speaker_boost: z.boolean().default(false),
-  optimize_streaming_latency: z.number().min(0).max(4).default(4),
-  auto_mode: z.boolean().default(true),
 });
 
 type PhoneConfigFormData = z.infer<typeof phoneConfigSchema>;
@@ -55,15 +47,7 @@ export function AiConfigForm() {
   const voiceForm = useForm<VoiceConfigFormData>({
     resolver: zodResolver(voiceConfigSchema),
     defaultValues: {
-      country_code: '+60',
-      default_name: 'AI Assistant',
-      concurrent_limit: 3,
       manual_voice_id: '',
-      provider: '11labs',
-      style: 0.0,
-      use_speaker_boost: false,
-      optimize_streaming_latency: 4,
-      auto_mode: true,
     },
   });
 
@@ -131,15 +115,7 @@ export function AiConfigForm() {
 
       // Reset voice form
       voiceForm.reset({
-        country_code: voiceConfig?.country_code || '+60',
-        default_name: voiceConfig?.default_name || 'AI Assistant',
-        concurrent_limit: voiceConfig?.concurrent_limit || 3,
         manual_voice_id: voiceConfig?.manual_voice_id || '',
-        provider: voiceConfig?.provider || '11labs',
-        style: voiceConfig?.style || 0.0,
-        use_speaker_boost: voiceConfig?.use_speaker_boost || false,
-        optimize_streaming_latency: voiceConfig?.optimize_streaming_latency || 4,
-        auto_mode: voiceConfig?.auto_mode || true,
       });
     }
   }, [aiConfig, phoneForm, voiceForm]);
@@ -199,15 +175,7 @@ export function AiConfigForm() {
 
       const voiceConfigData = {
         user_id: user.id,
-        country_code: data.country_code,
-        default_name: data.default_name,
-        concurrent_limit: data.concurrent_limit,
         manual_voice_id: data.manual_voice_id || null,
-        provider: data.provider,
-        style: data.style,
-        use_speaker_boost: data.use_speaker_boost,
-        optimize_streaming_latency: data.optimize_streaming_latency,
-        auto_mode: data.auto_mode,
         updated_at: new Date().toISOString()
       };
 
@@ -388,117 +356,22 @@ export function AiConfigForm() {
             
             <Form {...voiceForm}>
               <form onSubmit={voiceForm.handleSubmit(onSubmitVoice)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={voiceForm.control}
-                    name="country_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="+60" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={voiceForm.control}
-                    name="default_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Default Assistant Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="AI Assistant" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={voiceForm.control}
-                    name="concurrent_limit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Concurrent Call Limit</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            min="1" 
-                            max="10" 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={voiceForm.control}
-                    name="manual_voice_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Manual Voice ID (Optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Leave empty to use default 'sarah'" />
-                        </FormControl>
-                        <p className="text-sm text-muted-foreground">
-                          Current Voice ID: {getVoiceId()} {!voiceForm.getValues('manual_voice_id') && '(Default: Sarah)'}
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={voiceForm.control}
-                    name="style"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Voice Style (0-1)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            step="0.1" 
-                            min="0" 
-                            max="1"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={voiceForm.control}
-                    name="optimize_streaming_latency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Optimize Streaming Latency (0-4)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            min="0" 
-                            max="4"
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={voiceForm.control}
+                  name="manual_voice_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Manual Voice ID (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Leave empty to use default 'sarah'" />
+                      </FormControl>
+                      <p className="text-sm text-muted-foreground">
+                        Current Voice ID: {getVoiceId()} {!voiceForm.getValues('manual_voice_id') && '(Default: Sarah)'}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <Button 
                   type="submit" 
