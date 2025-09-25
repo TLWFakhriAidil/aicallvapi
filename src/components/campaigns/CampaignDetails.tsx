@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Phone, CheckCircle, XCircle, Clock, BarChart3 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, Phone, CheckCircle, XCircle, Clock, BarChart3, Play, FileText, DollarSign } from "lucide-react";
 
 interface CampaignDetailsProps {
   campaignId: string;
@@ -72,6 +74,72 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const renderRecordingButton = (recordingUrl?: string) => {
+    if (!recordingUrl) return <span className="text-muted-foreground">Tiada rakaman</span>;
+    
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(recordingUrl, '_blank')}
+        className="flex items-center gap-2"
+      >
+        <Play className="h-4 w-4" />
+        Main
+      </Button>
+    );
+  };
+
+  const renderTranscriptDialog = (transcript?: string) => {
+    if (!transcript) return <span className="text-muted-foreground">Tiada transkrip</span>;
+    
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Lihat
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Transkrip Panggilan</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-96 w-full">
+            <div className="whitespace-pre-wrap text-sm p-4 bg-muted rounded-md">
+              {transcript}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const renderSummaryDialog = (summary?: string) => {
+    if (!summary) return <span className="text-muted-foreground">Tiada ringkasan</span>;
+    
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Lihat
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ringkasan AI</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-96 w-full">
+            <div className="whitespace-pre-wrap text-sm p-4 bg-muted rounded-md">
+              {summary}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   if (campaignLoading) {
@@ -227,9 +295,12 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
                 <TableRow>
                   <TableHead>No. Telefon</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>VAPI Call ID</TableHead>
-                  <TableHead>Masa Mula</TableHead>
                   <TableHead>Durasi</TableHead>
+                  <TableHead>Rakaman</TableHead>
+                  <TableHead>Transkrip</TableHead>
+                  <TableHead>Ringkasan AI</TableHead>
+                  <TableHead>Kos</TableHead>
+                  <TableHead>Masa Mula</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -241,14 +312,28 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
                     <TableCell>
                       {getStatusBadge(log.status)}
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {log.vapi_call_id || '-'}
+                    <TableCell>
+                      {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {renderRecordingButton((log.metadata as any)?.recording_url)}
+                    </TableCell>
+                    <TableCell>
+                      {renderTranscriptDialog((log.metadata as any)?.transcript)}
+                    </TableCell>
+                    <TableCell>
+                      {renderSummaryDialog((log.metadata as any)?.summary)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {(log.metadata as any)?.call_cost ? `$${((log.metadata as any).call_cost).toFixed(4)}` : 'N/A'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {log.start_time ? new Date(log.start_time).toLocaleString('ms-MY') : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
                     </TableCell>
                   </TableRow>
                 ))}
