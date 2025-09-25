@@ -345,7 +345,7 @@ export function AiConfigForm() {
                     <FormItem>
                       <FormLabel>Twilio Auth Token</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" placeholder="c9dcesa53f6b38b1c1a0b810dc5a3835" />
+                        <Input {...field}  placeholder="c9dcesa53f6b38b1c1a0b810dc5a3835" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
