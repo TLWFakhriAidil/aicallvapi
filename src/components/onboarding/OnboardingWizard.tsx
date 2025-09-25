@@ -2,9 +2,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { 
-  X, 
   ChevronLeft, 
   ChevronRight,
   Sparkles,
@@ -46,33 +45,31 @@ export const OnboardingWizard: React.FC = () => {
       id: 1,
       title: "Selamat Datang ke AI Call VAPI",
       content: (
-        <div className="text-center space-y-6">
-          <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold mb-4">Selamat Datang!</h3>
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              Anda telah memasuki platform AI Voice Agent yang paling canggih. 
-              Platform ini membolehkan anda membuat panggilan automatik yang cerdas 
-              untuk sales, customer service, dan pelbagai kegunaan lain.
+        <div className="w-full flex flex-col justify-center items-center min-h-[320px]">
+          <div className="mb-6 flex flex-col items-center">
+            <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+              <Sparkles className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2 mt-4">Selamat Datang!</h3>
+            <p className="text-muted-foreground text-lg text-center max-w-xl">
+              Anda telah memasuki platform AI Voice Agent yang paling canggih. Platform ini membolehkan anda membuat panggilan automatik yang cerdas untuk sales, customer service, dan pelbagai kegunaan lain.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <Card className="p-4">
-              <Bot className="h-8 w-8 text-primary mx-auto mb-2" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 w-full max-w-3xl">
+            <Card className="p-4 flex flex-col items-center">
+              <Bot className="h-8 w-8 text-primary mb-2" />
               <p className="text-sm font-medium">AI Voice Agent</p>
-              <p className="text-xs text-muted-foreground">Suara natural seperti manusia</p>
+              <p className="text-xs text-muted-foreground text-center">Suara natural seperti manusia</p>
             </Card>
-            <Card className="p-4">
-              <Phone className="h-8 w-8 text-primary mx-auto mb-2" />
+            <Card className="p-4 flex flex-col items-center">
+              <Phone className="h-8 w-8 text-primary mb-2" />
               <p className="text-sm font-medium">Batch Calling</p>
-              <p className="text-xs text-muted-foreground">Panggilan pukal serentak</p>
+              <p className="text-xs text-muted-foreground text-center">Panggilan pukal serentak</p>
             </Card>
-            <Card className="p-4">
-              <BarChart3 className="h-8 w-8 text-primary mx-auto mb-2" />
+            <Card className="p-4 flex flex-col items-center">
+              <BarChart3 className="h-8 w-8 text-primary mb-2" />
               <p className="text-sm font-medium">Analytics</p>
-              <p className="text-xs text-muted-foreground">Laporan prestasi terperinci</p>
+              <p className="text-xs text-muted-foreground text-center">Laporan prestasi terperinci</p>
             </Card>
           </div>
         </div>
@@ -82,56 +79,43 @@ export const OnboardingWizard: React.FC = () => {
       id: 2,
       title: "Mulakan Campaign Pertama",
       content: (
-        <div className="space-y-6">
-          <div className="text-center">
+        <div className="w-full flex flex-col justify-center items-center min-h-[320px]">
+          <div className="text-center mb-6">
             <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mb-4">
               <Zap className="h-8 w-8 text-success" />
             </div>
             <h3 className="text-xl font-bold mb-2">Mulakan Campaign Anda</h3>
             <p className="text-muted-foreground">
-              Campaign adalah satu set panggilan automatik yang akan dibuat menggunakan 
-              senarai nombor telefon dan skrip yang anda sediakan.
+              Campaign adalah satu set panggilan automatik yang akan dibuat menggunakan senarai nombor telefon dan skrip yang anda sediakan.
             </p>
           </div>
-          
-          <div className="bg-muted/50 p-6 rounded-lg">
+          <div className="bg-muted/50 p-6 rounded-lg max-w-lg w-full mb-4">
             <h4 className="font-semibold mb-4 flex items-center">
               <CheckCircle className="h-5 w-5 text-success mr-2" />
               Langkah untuk memulakan:
             </h4>
             <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <Badge variant="outline" className="mt-0.5">1</Badge>
-                <div>
-                  <p className="font-medium">Sediakan senarai nombor telefon</p>
-                  <p className="text-sm text-muted-foreground">Format: +60123456789 (satu nombor per baris)</p>
+              {[
+                ["Sediakan senarai nombor telefon", "Format: +60123456789 (satu nombor per baris)"],
+                ["Pilih prompt/skrip percakapan", "Atau buat prompt baru sesuai keperluan"],
+                ["Mulakan campaign", "Sistem akan membuat panggilan secara automatik"],
+              ].map(([title, desc], idx) => (
+                <div className="flex items-start space-x-3" key={title}>
+                  <Badge variant="outline" className="mt-0.5">{idx + 1}</Badge>
+                  <div>
+                    <p className="font-medium">{title}</p>
+                    <p className="text-sm text-muted-foreground">{desc}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Badge variant="outline" className="mt-0.5">2</Badge>
-                <div>
-                  <p className="font-medium">Pilih prompt/skrip percakapan</p>
-                  <p className="text-sm text-muted-foreground">Atau buat prompt baru sesuai keperluan</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Badge variant="outline" className="mt-0.5">3</Badge>
-                <div>
-                  <p className="font-medium">Mulakan campaign</p>
-                  <p className="text-sm text-muted-foreground">Sistem akan membuat panggilan secara automatik</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-
-          <div className="text-center">
-            <Button asChild className="mt-4">
-              <Link to="/batch-call">
-                <Zap className="mr-2 h-4 w-4" />
-                Pergi ke Batch Call
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="mt-3">
+            <Link to="/batch-call">
+              <Zap className="mr-2 h-4 w-4" />
+              Pergi ke Batch Call
+            </Link>
+          </Button>
         </div>
       ),
     },
@@ -139,8 +123,8 @@ export const OnboardingWizard: React.FC = () => {
       id: 3,
       title: "Setup Prompt & Voice",
       content: (
-        <div className="space-y-6">
-          <div className="text-center">
+        <div className="w-full flex flex-col justify-center items-center min-h-[320px]">
+          <div className="text-center mb-6">
             <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
               <Settings className="h-8 w-8 text-blue-500" />
             </div>
@@ -149,8 +133,7 @@ export const OnboardingWizard: React.FC = () => {
               Tetapkan skrip percakapan dan pilih suara AI yang sesuai untuk campaign anda.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
             <Card className="p-6">
               <FileText className="h-8 w-8 text-primary mb-4" />
               <h4 className="font-semibold mb-2">Prompt Management</h4>
@@ -166,7 +149,6 @@ export const OnboardingWizard: React.FC = () => {
                 <Link to="/prompts">Urus Prompts</Link>
               </Button>
             </Card>
-
             <Card className="p-6">
               <Bot className="h-8 w-8 text-primary mb-4" />
               <h4 className="font-semibold mb-2">Voice Configuration</h4>
@@ -183,8 +165,7 @@ export const OnboardingWizard: React.FC = () => {
               </Button>
             </Card>
           </div>
-
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 mt-8 w-full max-w-3xl">
             <div className="flex items-start space-x-3">
               <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold">!</span>
@@ -192,8 +173,7 @@ export const OnboardingWizard: React.FC = () => {
               <div>
                 <p className="font-medium text-yellow-800 dark:text-yellow-200">Tips Penting</p>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                  Pastikan anda sudah setup API keys dan phone configuration di Settings 
-                  sebelum memulakan campaign pertama.
+                  Pastikan anda sudah setup API keys dan phone configuration di Settings sebelum memulakan campaign pertama.
                 </p>
               </div>
             </div>
@@ -205,8 +185,8 @@ export const OnboardingWizard: React.FC = () => {
       id: 4,
       title: "Review Call Logs & Analytics",
       content: (
-        <div className="space-y-6">
-          <div className="text-center">
+        <div className="w-full flex flex-col justify-center items-center min-h-[320px]">
+          <div className="text-center mb-6">
             <div className="mx-auto w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-8 w-8 text-purple-500" />
             </div>
@@ -215,8 +195,7 @@ export const OnboardingWizard: React.FC = () => {
               Analisis mendalam tentang prestasi panggilan dan hasil campaign anda.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
             <Card className="p-6">
               <h4 className="font-semibold mb-4 flex items-center">
                 <Phone className="h-5 w-5 text-primary mr-2" />
@@ -244,7 +223,6 @@ export const OnboardingWizard: React.FC = () => {
                 <Link to="/call-logs">Lihat Call Logs</Link>
               </Button>
             </Card>
-
             <Card className="p-6">
               <h4 className="font-semibold mb-4 flex items-center">
                 <BarChart3 className="h-5 w-5 text-primary mr-2" />
@@ -273,15 +251,13 @@ export const OnboardingWizard: React.FC = () => {
               </Button>
             </Card>
           </div>
-
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 mt-8 w-full max-w-3xl">
             <div className="flex items-start space-x-3">
               <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium text-green-800 dark:text-green-200">Dashboard Metrics</p>
                 <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                  Metrics akan kemas kini secara real-time selepas panggilan bermula. 
-                  Success rate dikira berdasarkan panggilan yang berjaya disambungkan dan selesai.
+                  Metrics akan kemas kini secara real-time selepas panggilan bermula. Success rate dikira berdasarkan panggilan yang berjaya disambungkan dan selesai.
                 </p>
               </div>
             </div>
@@ -293,20 +269,17 @@ export const OnboardingWizard: React.FC = () => {
       id: 5,
       title: "Selesai & Ready!",
       content: (
-        <div className="text-center space-y-6">
-          <div className="mx-auto w-20 h-20 bg-success/10 rounded-full flex items-center justify-center">
-            <CheckCircle className="h-10 w-10 text-success" />
-          </div>
-          <div>
+        <div className="w-full flex flex-col justify-center items-center min-h-[320px]">
+          <div className="mb-6 flex flex-col items-center">
+            <div className="mx-auto w-20 h-20 bg-success/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-10 w-10 text-success" />
+            </div>
             <h3 className="text-2xl font-bold mb-4">Tahniah! Setup Lengkap</h3>
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              Anda kini sudah bersedia untuk menggunakan AI Call VAPI sepenuhnya. 
-              Platform ini akan membantu anda mengautomatikkan panggilan dan 
-              meningkatkan produktiviti perniagaan.
+            <p className="text-muted-foreground text-lg leading-relaxed text-center">
+              Anda kini sudah bersedia untuk menggunakan AI Call VAPI sepenuhnya. Platform ini akan membantu anda mengautomatikkan panggilan dan meningkatkan produktiviti perniagaan.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 w-full max-w-2xl">
             <Card className="p-6 text-left">
               <h4 className="font-semibold mb-3 flex items-center">
                 <Zap className="h-5 w-5 text-primary mr-2" />
@@ -319,7 +292,6 @@ export const OnboardingWizard: React.FC = () => {
                 <li>• Analisis hasil di dashboard</li>
               </ul>
             </Card>
-
             <Card className="p-6 text-left">
               <h4 className="font-semibold mb-3 flex items-center">
                 <Bot className="h-5 w-5 text-primary mr-2" />
@@ -333,7 +305,6 @@ export const OnboardingWizard: React.FC = () => {
               </ul>
             </Card>
           </div>
-
           <div className="flex justify-center space-x-4 mt-8">
             <Button asChild size="lg">
               <Link to="/batch-call">
@@ -407,9 +378,7 @@ export const OnboardingWizard: React.FC = () => {
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
               <div
                 key={step}
-                className={`w-2 h-2 rounded-full ${
-                  step <= currentStep ? 'bg-primary' : 'bg-muted'
-                }`}
+                className={`w-2 h-2 rounded-full ${step <= currentStep ? 'bg-primary' : 'bg-muted'}`}
               />
             ))}
           </div>
