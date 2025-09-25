@@ -15,59 +15,53 @@ import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ApiKeysForm } from '@/components/api-keys/ApiKeysForm';
 
-// Schema for form validation
-const aiConfigSchema = z.object({
-  // Phone Configuration
+// Schema for phone configuration
+const phoneConfigSchema = z.object({
   twilio_phone_number: z.string().min(1, 'Twilio phone number is required'),
   twilio_account_sid: z.string().min(1, 'Twilio Account SID is required'),
   twilio_auth_token: z.string().min(1, 'Twilio Auth Token is required'),
-  
-  // Voice Configuration
+});
+
+// Schema for voice configuration
+const voiceConfigSchema = z.object({
   country_code: z.string().default('+60'),
   default_name: z.string().default('AI Assistant'),
   concurrent_limit: z.number().min(1).max(10).default(3),
   manual_voice_id: z.string().optional(),
-  
-  // ElevenLabs Voice Parameters
   provider: z.string().default('11labs'),
-  model: z.string().default('eleven_flash_v2_5'),
-  stability: z.number().min(0).max(1).default(0.8),
-  similarity_boost: z.number().min(0).max(1).default(1),
   style: z.number().min(0).max(1).default(0.0),
   use_speaker_boost: z.boolean().default(false),
-  speed: z.number().min(0.25).max(4).default(0.8),
   optimize_streaming_latency: z.number().min(0).max(4).default(4),
   auto_mode: z.boolean().default(true),
 });
 
-type AiConfigFormData = z.infer<typeof aiConfigSchema>;
-
-interface AiConfigData extends AiConfigFormData {
-  id: string;
-}
+type PhoneConfigFormData = z.infer<typeof phoneConfigSchema>;
+type VoiceConfigFormData = z.infer<typeof voiceConfigSchema>;
 
 export function AiConfigForm() {
   const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<AiConfigFormData>({
-    resolver: zodResolver(aiConfigSchema),
+  const phoneForm = useForm<PhoneConfigFormData>({
+    resolver: zodResolver(phoneConfigSchema),
     defaultValues: {
       twilio_phone_number: '',
       twilio_account_sid: '',
       twilio_auth_token: '',
+    },
+  });
+
+  const voiceForm = useForm<VoiceConfigFormData>({
+    resolver: zodResolver(voiceConfigSchema),
+    defaultValues: {
       country_code: '+60',
       default_name: 'AI Assistant',
       concurrent_limit: 3,
       manual_voice_id: '',
       provider: '11labs',
-      model: 'eleven_flash_v2_5',
-      stability: 0.8,
-      similarity_boost: 1,
       style: 0.0,
       use_speaker_boost: false,
-      speed: 0.8,
       optimize_streaming_latency: 4,
       auto_mode: true,
     },
@@ -122,39 +116,39 @@ export function AiConfigForm() {
     enabled: !!user,
   });
 
-  // Auto-populate form when data is loaded
+  // Auto-populate forms when data is loaded
   useEffect(() => {
     if (aiConfig) {
       const phoneConfig = aiConfig.phone_config;
       const voiceConfig = aiConfig.voice_config;
       
-      form.reset({
+      // Reset phone form
+      phoneForm.reset({
         twilio_phone_number: phoneConfig?.twilio_phone_number || '',
         twilio_account_sid: phoneConfig?.twilio_account_sid || '',
         twilio_auth_token: phoneConfig?.twilio_auth_token || '',
+      });
+
+      // Reset voice form
+      voiceForm.reset({
         country_code: voiceConfig?.country_code || '+60',
         default_name: voiceConfig?.default_name || 'AI Assistant',
         concurrent_limit: voiceConfig?.concurrent_limit || 3,
         manual_voice_id: voiceConfig?.manual_voice_id || '',
         provider: voiceConfig?.provider || '11labs',
-        model: voiceConfig?.model || 'eleven_flash_v2_5',
-        stability: voiceConfig?.stability || 0.8,
-        similarity_boost: voiceConfig?.similarity_boost || 1,
         style: voiceConfig?.style || 0.0,
         use_speaker_boost: voiceConfig?.use_speaker_boost || false,
-        speed: voiceConfig?.speed || 0.8,
         optimize_streaming_latency: voiceConfig?.optimize_streaming_latency || 4,
         auto_mode: voiceConfig?.auto_mode || true,
       });
     }
-  }, [aiConfig, form]);
+  }, [aiConfig, phoneForm, voiceForm]);
 
-  // Mutation for saving AI config
-  const saveMutation = useMutation({
-    mutationFn: async (data: AiConfigFormData) => {
+  // Mutation for saving phone config
+  const savePhoneMutation = useMutation({
+    mutationFn: async (data: PhoneConfigFormData) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Save phone config
       const phoneConfigData = {
         twilio_phone_number: data.twilio_phone_number,
         twilio_account_sid: data.twilio_account_sid,
@@ -162,7 +156,6 @@ export function AiConfigForm() {
         updated_at: new Date().toISOString()
       };
 
-      // Check if phone config exists
       const { data: existingPhoneConfig } = await supabase
         .from('phone_config')
         .select('id')
@@ -182,8 +175,28 @@ export function AiConfigForm() {
             ...phoneConfigData
           });
       }
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Phone configuration saved successfully!',
+      });
+      queryClient.invalidateQueries({ queryKey: ['ai-config', user?.id] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
-      // Save voice config using direct table access
+  // Mutation for saving voice config
+  const saveVoiceMutation = useMutation({
+    mutationFn: async (data: VoiceConfigFormData) => {
+      if (!user) throw new Error('User not authenticated');
+
       const voiceConfigData = {
         user_id: user.id,
         country_code: data.country_code,
@@ -191,19 +204,14 @@ export function AiConfigForm() {
         concurrent_limit: data.concurrent_limit,
         manual_voice_id: data.manual_voice_id || null,
         provider: data.provider,
-        model: data.model,
-        stability: data.stability,
-        similarity_boost: data.similarity_boost,
         style: data.style,
         use_speaker_boost: data.use_speaker_boost,
-        speed: data.speed,
         optimize_streaming_latency: data.optimize_streaming_latency,
         auto_mode: data.auto_mode,
         updated_at: new Date().toISOString()
       };
 
       try {
-        // Use upsert to insert or update voice config
         const { error: voiceError } = await (supabase as any)
           .from('voice_config')
           .upsert(voiceConfigData, { 
@@ -223,7 +231,7 @@ export function AiConfigForm() {
     onSuccess: () => {
       toast({
         title: 'Success',
-        description: 'AI configuration saved successfully!',
+        description: 'Voice configuration saved successfully!',
       });
       queryClient.invalidateQueries({ queryKey: ['ai-config', user?.id] });
     },
@@ -238,7 +246,7 @@ export function AiConfigForm() {
 
   // Helper function to get voice ID
   const getVoiceId = () => {
-    const manualVoiceId = form.getValues('manual_voice_id');
+    const manualVoiceId = voiceForm.getValues('manual_voice_id');
     const defaultVoiceId = 'EXAVITQu4vr4xnSDxMaL'; // sarah voice ID
     
     return manualVoiceId && manualVoiceId.trim() !== '' 
@@ -246,8 +254,12 @@ export function AiConfigForm() {
       : defaultVoiceId;
   };
 
-  const onSubmit = (data: AiConfigFormData) => {
-    saveMutation.mutate(data);
+  const onSubmitPhone = (data: PhoneConfigFormData) => {
+    savePhoneMutation.mutate(data);
+  };
+
+  const onSubmitVoice = (data: VoiceConfigFormData) => {
+    saveVoiceMutation.mutate(data);
   };
 
   const isConfigured = aiConfig?.phone_config || aiConfig?.voice_config;
@@ -294,19 +306,18 @@ export function AiConfigForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
-              {/* Phone Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4" />
-                  <h3 className="text-lg font-medium">Phone Configuration</h3>
-                </div>
-                
+          {/* Phone Configuration Section */}
+          <div className="space-y-6">
+            <div className="flex items-center space-x-2">
+              <Phone className="h-4 w-4" />
+              <h3 className="text-lg font-medium">Phone Configuration</h3>
+            </div>
+            
+            <Form {...phoneForm}>
+              <form onSubmit={phoneForm.handleSubmit(onSubmitPhone)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={phoneForm.control}
                     name="twilio_phone_number"
                     render={({ field }) => (
                       <FormItem>
@@ -320,23 +331,7 @@ export function AiConfigForm() {
                   />
 
                   <FormField
-                    control={form.control}
-                    name="country_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="+60" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
+                    control={phoneForm.control}
                     name="twilio_account_sid"
                     render={({ field }) => (
                       <FormItem>
@@ -348,9 +343,68 @@ export function AiConfigForm() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                <FormField
+                  control={phoneForm.control}
+                  name="twilio_auth_token"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Twilio Auth Token</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" placeholder="c9dcesa53f6b38b1c1a0b810dc5a3835" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={savePhoneMutation.isPending}
+                >
+                  {savePhoneMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving Phone Config...
+                    </>
+                  ) : (
+                    'Save Phone Configuration'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </div>
+
+          <Separator />
+
+          {/* Voice Configuration Section */}
+          <div className="space-y-6">
+            <div className="flex items-center space-x-2">
+              <Mic className="h-4 w-4" />
+              <h3 className="text-lg font-medium">Voice Configuration</h3>
+            </div>
+            
+            <Form {...voiceForm}>
+              <form onSubmit={voiceForm.handleSubmit(onSubmitVoice)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={voiceForm.control}
+                    name="country_code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="+60" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
-                    control={form.control}
+                    control={voiceForm.control}
                     name="default_name"
                     render={({ field }) => (
                       <FormItem>
@@ -366,21 +420,7 @@ export function AiConfigForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
-                    name="twilio_auth_token"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Twilio Auth Token</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="password" placeholder="c9dcesa53f6b38b1c1a0b810dc5a3835" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
+                    control={voiceForm.control}
                     name="concurrent_limit"
                     render={({ field }) => (
                       <FormItem>
@@ -398,21 +438,9 @@ export function AiConfigForm() {
                       </FormItem>
                     )}
                   />
-                </div>
-              </div>
 
-              <Separator />
-
-              {/* Voice Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Mic className="h-4 w-4" />
-                  <h3 className="text-lg font-medium">Voice Configuration</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={voiceForm.control}
                     name="manual_voice_id"
                     render={({ field }) => (
                       <FormItem>
@@ -421,35 +449,21 @@ export function AiConfigForm() {
                           <Input {...field} placeholder="Leave empty to use default 'sarah'" />
                         </FormControl>
                         <p className="text-sm text-muted-foreground">
-                          Current Voice ID: {getVoiceId()} {!form.getValues('manual_voice_id') && '(Default: Sarah)'}
+                          Current Voice ID: {getVoiceId()} {!voiceForm.getValues('manual_voice_id') && '(Default: Sarah)'}
                         </p>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ElevenLabs Model</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="eleven_flash_v2_5" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
-                    name="stability"
+                    control={voiceForm.control}
+                    name="style"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Stability (0-1)</FormLabel>
+                        <FormLabel>Voice Style (0-1)</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -466,40 +480,18 @@ export function AiConfigForm() {
                   />
 
                   <FormField
-                    control={form.control}
-                    name="similarity_boost"
+                    control={voiceForm.control}
+                    name="optimize_streaming_latency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Similarity Boost (0-1)</FormLabel>
+                        <FormLabel>Optimize Streaming Latency (0-4)</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
                             type="number" 
-                            step="0.1" 
                             min="0" 
-                            max="1"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="speed"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Speed (0.25-4)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            step="0.1" 
-                            min="0.25" 
                             max="4"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
                         <FormMessage />
@@ -507,24 +499,24 @@ export function AiConfigForm() {
                     )}
                   />
                 </div>
-              </div>
 
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={saveMutation.isPending}
-              >
-                {saveMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save AI Configuration'
-                )}
-              </Button>
-            </form>
-          </Form>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={saveVoiceMutation.isPending}
+                >
+                  {saveVoiceMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving Voice Config...
+                    </>
+                  ) : (
+                    'Save Voice Configuration'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </div>
         </CardContent>
       </Card>
     </div>
