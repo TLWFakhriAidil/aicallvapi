@@ -80,6 +80,9 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
   const renderRecordingButton = (recordingUrl?: string) => {
     if (!recordingUrl) return <span className="text-muted-foreground">Tiada rakaman</span>;
     
+    // Debug: log the URL to see what we're getting
+    console.log('Recording URL:', recordingUrl);
+    
     return (
       <AudioPlayerDialog
         recordingUrl={recordingUrl}

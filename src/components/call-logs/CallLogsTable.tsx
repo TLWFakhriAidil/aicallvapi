@@ -113,8 +113,16 @@ export function CallLogsTable() {
     getAgentName(log.agent_id).toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const renderRecordingButton = (recordingUrl?: string) => {
-    if (!recordingUrl) return <span className="text-muted-foreground">No recording</span>;
+  const renderRecordingButton = (log: any) => {
+    // Check multiple possible locations for recording URL
+    const recordingUrl = log?.metadata?.recording_url || 
+                        log?.end_of_call_report?.call?.recording?.url ||
+                        log?.end_of_call_report?.recording_url ||
+                        log?.metadata?.recordingUrl;
+    
+    if (!recordingUrl) {
+      return <span className="text-muted-foreground">No recording</span>;
+    }
     
     return (
       <AudioPlayerDialog
@@ -252,7 +260,7 @@ export function CallLogsTable() {
                     {formatDuration(log.duration)}
                   </TableCell>
                   <TableCell>
-                    {renderRecordingButton(log.metadata?.recording_url)}
+                    {renderRecordingButton(log)}
                   </TableCell>
                   <TableCell>
                     {renderTranscriptDialog(log.metadata?.transcript)}
