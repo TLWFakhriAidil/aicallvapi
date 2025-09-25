@@ -77,12 +77,14 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
     }
   };
 
-  const renderRecordingButton = (recordingUrl?: string) => {
+  const renderRecordingButton = (log: any) => {
+    const recordingUrl = (log?.metadata as any)?.recording_url ||
+      log?.end_of_call_report?.call?.recording?.url ||
+      log?.end_of_call_report?.recording_url ||
+      (log?.metadata as any)?.recordingUrl;
+
     if (!recordingUrl) return <span className="text-muted-foreground">Tiada rakaman</span>;
-    
-    // Debug: log the URL to see what we're getting
-    console.log('Recording URL:', recordingUrl);
-    
+
     return (
       <AudioPlayerDialog
         recordingUrl={recordingUrl}
@@ -320,7 +322,7 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
                       {log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : '-'}
                     </TableCell>
                     <TableCell>
-                      {renderRecordingButton((log.metadata as any)?.recording_url)}
+                      {renderRecordingButton(log)}
                     </TableCell>
                     <TableCell>
                       {renderTranscriptDialog((log.metadata as any)?.transcript)}

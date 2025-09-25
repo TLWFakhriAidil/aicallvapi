@@ -15,6 +15,8 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -103,7 +105,23 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={(v) => {
+      setOpen(v);
+      if (v) {
+        setError(null);
+        setTimeout(() => {
+          const a = audioRef.current;
+          if (a) {
+            a.currentTime = 0;
+            a.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+          }
+        }, 0);
+      } else {
+        const a = audioRef.current;
+        if (a) a.pause();
+        setIsPlaying(false);
+      }
+    }}>
       <DialogTrigger asChild>
         {triggerButton}
       </DialogTrigger>
@@ -120,11 +138,20 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
             ref={audioRef} 
             src={recordingUrl} 
             preload="metadata"
-            crossOrigin="anonymous"
-            onError={(e) => console.error('Audio loading error:', e)}
-            onLoadStart={() => console.log('Audio loading started')}
-            onCanPlay={() => console.log('Audio can play')}
+            controls
+            onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration || 0)}
+            onError={(e) => { console.error('Audio loading error:', e); setError('Gagal memuat audio.'); }}
           />
+
+          {error && (
+            <div className="text-sm text-destructive">
+              Tidak dapat mainkan audio dalam popup. Anda boleh:
+              <div className="mt-2 flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.open(recordingUrl, '_blank')}>Buka tab baru</Button>
+                <Button variant="outline" size="sm" onClick={downloadRecording}><Download className="h-4 w-4 mr-1" />Muat turun</Button>
+              </div>
+            </div>
+          )}
           
           {/* Progress Bar */}
           <div className="space-y-2">
