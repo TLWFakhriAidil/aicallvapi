@@ -36,16 +36,23 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
     };
   }, []);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      // Reset playing state if play fails
+      setIsPlaying(false);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (value: number[]) => {
@@ -109,7 +116,15 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          <audio ref={audioRef} src={recordingUrl} preload="metadata" />
+          <audio 
+            ref={audioRef} 
+            src={recordingUrl} 
+            preload="metadata"
+            crossOrigin="anonymous"
+            onError={(e) => console.error('Audio loading error:', e)}
+            onLoadStart={() => console.log('Audio loading started')}
+            onCanPlay={() => console.log('Audio can play')}
+          />
           
           {/* Progress Bar */}
           <div className="space-y-2">
