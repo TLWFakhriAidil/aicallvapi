@@ -50,7 +50,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Webhook processing error:', error)
     return new Response(
-      JSON.stringify({ status: 'error', message: error.message }),
+      JSON.stringify({ status: 'error', message: (error as Error).message || 'Unknown error' }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     )
   }
@@ -131,7 +131,7 @@ async function processFunctionCall(supabase: any, messageData: any) {
     return new Response(
       JSON.stringify({
         status: 'error',
-        message: error.message
+        message: (error as Error).message || 'Unknown error'
       }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     )
@@ -176,7 +176,7 @@ async function handleWhatsAppTool(args: any) {
     console.error('❌ WHATSAPP TOOL ERROR:', error)
     return {
       success: false,
-      error: error.message
+      error: (error as Error).message || 'Unknown error'
     }
   }
 }

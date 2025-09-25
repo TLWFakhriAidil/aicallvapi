@@ -456,7 +456,7 @@ Only respond with the JSON.`
           return { success: true, phoneNumber, callId: responseData.id };
 
         } catch (error) {
-          console.error(`Failed to call ${phoneNumber}:`, error.message);
+          console.error(`Failed to call ${phoneNumber}:`, (error as Error).message || 'Unknown error');
           
           // Log failed call
           await supabaseAdmin.from('call_logs').insert({
@@ -468,12 +468,12 @@ Only respond with the JSON.`
             caller_number: phoneNumber,
             start_time: new Date().toISOString(),
             metadata: {
-              error: error.message,
+              error: (error as Error).message || 'Unknown error',
               batch_call: true
             }
           });
 
-          return { success: false, phoneNumber, error: error.message };
+          return { success: false, phoneNumber, error: (error as Error).message || 'Unknown error' };
         }
       });
 
@@ -527,7 +527,7 @@ Only respond with the JSON.`
 
   } catch (error) {
     console.error('Error in batch-call function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message || 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

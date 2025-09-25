@@ -387,6 +387,66 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_config: {
+        Row: {
+          auto_mode: boolean | null
+          concurrent_limit: number | null
+          country_code: string | null
+          created_at: string
+          default_name: string | null
+          id: string
+          manual_voice_id: string | null
+          model: string | null
+          optimize_streaming_latency: number | null
+          provider: string | null
+          similarity_boost: number | null
+          speed: number | null
+          stability: number | null
+          style: number | null
+          updated_at: string
+          use_speaker_boost: boolean | null
+          user_id: string
+        }
+        Insert: {
+          auto_mode?: boolean | null
+          concurrent_limit?: number | null
+          country_code?: string | null
+          created_at?: string
+          default_name?: string | null
+          id?: string
+          manual_voice_id?: string | null
+          model?: string | null
+          optimize_streaming_latency?: number | null
+          provider?: string | null
+          similarity_boost?: number | null
+          speed?: number | null
+          stability?: number | null
+          style?: number | null
+          updated_at?: string
+          use_speaker_boost?: boolean | null
+          user_id: string
+        }
+        Update: {
+          auto_mode?: boolean | null
+          concurrent_limit?: number | null
+          country_code?: string | null
+          created_at?: string
+          default_name?: string | null
+          id?: string
+          manual_voice_id?: string | null
+          model?: string | null
+          optimize_streaming_latency?: number | null
+          provider?: string | null
+          similarity_boost?: number | null
+          speed?: number | null
+          stability?: number | null
+          style?: number | null
+          updated_at?: string
+          use_speaker_boost?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

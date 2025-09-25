@@ -79,38 +79,59 @@ export function AiConfigForm() {
     queryFn: async () => {
       if (!user) return null;
       
-      // Get phone config
-      const { data: phoneData } = await supabase
-        .from('phone_config')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      // Get voice config (we'll create this table)
-      const { data: voiceData } = await supabase
-        .from('voice_config')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      return {
-        phone_config: phoneData,
-        voice_config: voiceData
-      };
+      try {
+        // Get phone config
+        const { data: phoneData, error: phoneError } = await supabase
+          .from('phone_config')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (phoneError && phoneError.code !== 'PGRST116') {
+          console.error('Phone config error:', phoneError);
+        }
+
+        // Get voice config using a direct query - cast to any to bypass TypeScript
+        let voiceData = null;
+        try {
+          const { data: vData, error: voiceError } = await (supabase as any)
+            .from('voice_config')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (!voiceError) {
+            voiceData = vData;
+          }
+        } catch (error) {
+          console.log('Voice config table not ready yet');
+        }
+        
+        return {
+          phone_config: phoneData,
+          voice_config: voiceData
+        };
+      } catch (error) {
+        console.error('Error fetching AI config:', error);
+        return {
+          phone_config: null,
+          voice_config: null
+        };
+      }
     },
     enabled: !!user,
   });
 
   // Auto-populate form when data is loaded
   useEffect(() => {
-    if (aiConfig?.phone_config) {
+    if (aiConfig) {
       const phoneConfig = aiConfig.phone_config;
       const voiceConfig = aiConfig.voice_config;
       
       form.reset({
-        twilio_phone_number: phoneConfig.twilio_phone_number || '',
-        twilio_account_sid: phoneConfig.twilio_account_sid || '',
-        twilio_auth_token: phoneConfig.twilio_auth_token || '',
+        twilio_phone_number: phoneConfig?.twilio_phone_number || '',
+        twilio_account_sid: phoneConfig?.twilio_account_sid || '',
+        twilio_auth_token: phoneConfig?.twilio_auth_token || '',
         country_code: voiceConfig?.country_code || '+60',
         default_name: voiceConfig?.default_name || 'AI Assistant',
         concurrent_limit: voiceConfig?.concurrent_limit || 3,
@@ -162,12 +183,13 @@ export function AiConfigForm() {
           });
       }
 
-      // Save voice config
+      // Save voice config using direct table access
       const voiceConfigData = {
+        user_id: user.id,
         country_code: data.country_code,
         default_name: data.default_name,
         concurrent_limit: data.concurrent_limit,
-        manual_voice_id: data.manual_voice_id,
+        manual_voice_id: data.manual_voice_id || null,
         provider: data.provider,
         model: data.model,
         stability: data.stability,
@@ -180,25 +202,22 @@ export function AiConfigForm() {
         updated_at: new Date().toISOString()
       };
 
-      // Check if voice config exists
-      const { data: existingVoiceConfig } = await supabase
-        .from('voice_config')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingVoiceConfig) {
-        await supabase
+      try {
+        // Use upsert to insert or update voice config
+        const { error: voiceError } = await (supabase as any)
           .from('voice_config')
-          .update(voiceConfigData)
-          .eq('user_id', user.id);
-      } else {
-        await supabase
-          .from('voice_config')
-          .insert({
-            user_id: user.id,
-            ...voiceConfigData
+          .upsert(voiceConfigData, { 
+            onConflict: 'user_id',
+            ignoreDuplicates: false 
           });
+        
+        if (voiceError) {
+          console.error('Voice config error:', voiceError);
+          throw new Error(`Failed to save voice configuration: ${voiceError.message}`);
+        }
+      } catch (error) {
+        console.error('Error saving voice config:', error);
+        throw new Error('Failed to save voice configuration');
       }
     },
     onSuccess: () => {
