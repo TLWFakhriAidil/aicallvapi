@@ -10,7 +10,8 @@ import {
   XCircle,
   BarChart3,
   Calendar,
-  Clock
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
@@ -18,11 +19,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { StatsCards } from '@/components/analytics/StatsCards';
 import { RecentCampaigns } from '@/components/analytics/RecentCampaigns';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Dashboard() {
   const { user } = useCustomAuth();
+  const { showOnboarding } = useOnboarding();
 
   // Fetch dashboard analytics
   const { data: campaignsData, isLoading: campaignsLoading } = useQuery({
@@ -61,12 +65,15 @@ export default function Dashboard() {
   const stats = {
     totalCampaigns: campaignsData?.length || 0,
     totalCalls: callLogsData?.length || 0,
-    successfulCalls: callLogsData?.filter(log => log.status === 'completed').length || 0,
-    failedCalls: callLogsData?.filter(log => log.status === 'failed').length || 0,
+    successfulCalls: callLogsData?.filter(log => log.status === 'ended').length || 0,
+    failedCalls: callLogsData?.filter(log => log.status === 'failed' || log.status === 'cancelled').length || 0,
     conversionRate: callLogsData?.length ? 
-      (callLogsData.filter(log => log.status === 'completed').length / callLogsData.length) * 100 : 0,
+      (callLogsData.filter(log => log.status === 'ended').length / callLogsData.length) * 100 : 0,
     averageDuration: callLogsData?.length ? 
-      callLogsData.reduce((acc, log) => acc + (log.duration || 0), 0) / callLogsData.length : 0,
+      callLogsData
+        .filter(log => log.duration && log.duration > 0)
+        .reduce((acc, log) => acc + (log.duration || 0), 0) / 
+      Math.max(callLogsData.filter(log => log.duration && log.duration > 0).length, 1) : 0,
   };
 
   const getStatusBadge = (status: string) => {
@@ -91,12 +98,20 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back, {user?.username}!
-            </h1>
-            <p className="text-muted-foreground">
-              Here's an overview of your voice AI campaigns and performance.
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Welcome back, {user?.username}!
+                </h1>
+                <p className="text-muted-foreground">
+                  Here's an overview of your voice AI campaigns and performance.
+                </p>
+              </div>
+              <Button variant="outline" onClick={showOnboarding} className="flex items-center space-x-2">
+                <Sparkles className="h-4 w-4" />
+                <span>Show Guide</span>
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -257,6 +272,7 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+      <OnboardingWizard />
     </div>
   );
 }
