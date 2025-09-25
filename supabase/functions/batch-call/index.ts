@@ -112,7 +112,7 @@ serve(async (req) => {
     // Default voice (hardcoded ElevenLabs config)
     const defaultVoice = {
       provider: '11labs',
-      voiceId: 'Sarah',
+      voiceId: 'Kci88S94DOa31YrdXiWR',
       model: 'eleven_flash_v2_5',
       stability: 0.8,
       similarityBoost: 1,
