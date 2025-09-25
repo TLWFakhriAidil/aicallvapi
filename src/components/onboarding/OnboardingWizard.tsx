@@ -173,7 +173,7 @@ export const OnboardingWizard: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Pilih dan laraskan suara AI untuk campaign:
               </p>
-            <p> </p>
+              <p> ss</p>
               <ul className="text-sm space-y-1">
                 <li>• Pilih voice ID (11Labs)</li>
                 <li>• Laras kelajuan suara</li>
