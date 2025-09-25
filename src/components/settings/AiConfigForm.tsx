@@ -173,27 +173,52 @@ export function AiConfigForm() {
     mutationFn: async (data: VoiceConfigFormData) => {
       if (!user) throw new Error('User not authenticated');
 
-      const voiceConfigData = {
-        user_id: user.id,
-        manual_voice_id: data.manual_voice_id || null,
-        updated_at: new Date().toISOString()
-      };
-
       try {
-        const { error: voiceError } = await (supabase as any)
+        // Check if voice config exists for this user
+        const { data: existingConfig, error: checkError } = await (supabase as any)
           .from('voice_config')
-          .upsert(voiceConfigData, { 
-            onConflict: 'user_id',
-            ignoreDuplicates: false 
-          });
-        
-        if (voiceError) {
-          console.error('Voice config error:', voiceError);
-          throw new Error(`Failed to save voice configuration: ${voiceError.message}`);
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking existing voice config:', checkError);
+          throw new Error(`Failed to check voice configuration: ${checkError.message}`);
+        }
+
+        const voiceConfigData = {
+          manual_voice_id: data.manual_voice_id || null,
+          updated_at: new Date().toISOString()
+        };
+
+        if (existingConfig) {
+          // Update existing config
+          const { error: updateError } = await (supabase as any)
+            .from('voice_config')
+            .update(voiceConfigData)
+            .eq('user_id', user.id);
+          
+          if (updateError) {
+            console.error('Voice config update error:', updateError);
+            throw new Error(`Failed to update voice configuration: ${updateError.message}`);
+          }
+        } else {
+          // Insert new config
+          const { error: insertError } = await (supabase as any)
+            .from('voice_config')
+            .insert({
+              user_id: user.id,
+              ...voiceConfigData
+            });
+          
+          if (insertError) {
+            console.error('Voice config insert error:', insertError);
+            throw new Error(`Failed to create voice configuration: ${insertError.message}`);
+          }
         }
       } catch (error) {
         console.error('Error saving voice config:', error);
-        throw new Error('Failed to save voice configuration');
+        throw error;
       }
     },
     onSuccess: () => {
