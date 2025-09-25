@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as React from 'react';
 import { User, getCurrentUser, signOut as customSignOut } from '@/lib/customAuth';
 
 interface CustomAuthContextType {
@@ -8,11 +8,11 @@ interface CustomAuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const CustomAuthContext = createContext<CustomAuthContextType | undefined>(undefined);
+const CustomAuthContext = React.createContext<CustomAuthContextType | undefined>(undefined);
 
 export function CustomAuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   const refreshUser = async () => {
     try {
@@ -26,7 +26,7 @@ export function CustomAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     refreshUser();
   }, []);
 
@@ -50,7 +50,7 @@ export function CustomAuthProvider({ children }: { children: React.ReactNode }) 
 }
 
 export function useCustomAuth() {
-  const context = useContext(CustomAuthContext);
+  const context = React.useContext(CustomAuthContext);
   if (context === undefined) {
     throw new Error('useCustomAuth must be used within a CustomAuthProvider');
   }
