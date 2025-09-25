@@ -60,6 +60,11 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
     },
   });
 
+  const totalCost = callLogs
+  ? callLogs.reduce((sum, log) => sum + ((log.metadata?.call_cost || 0)), 0)
+  : 0;
+
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'initiated':
@@ -287,6 +292,10 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
           <CardTitle>Log Panggilan Detail</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex items-center gap-2 font-semibold">
+            <DollarSign className="h-5 w-5 text-muted-foreground" />
+            Jumlah Kos: <span>{totalCost.toFixed(4)} USD</span>
+          </div>
           {callLogsLoading ? (
             <div className="text-center py-8">
               <p>Memuat log panggilan...</p>
