@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Play, Pause, RotateCcw, RotateCw, Download, Volume2 } from "lucide-react";
@@ -104,6 +104,23 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const getAudioMimeType = (url: string) => {
+    const clean = url.split('?')[0] || '';
+    const ext = clean.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
+      case 'ogg':
+        return 'audio/ogg';
+      case 'm4a':
+        return 'audio/mp4';
+      default:
+        return 'audio/mpeg';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => {
       setOpen(v);
@@ -111,9 +128,13 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
         setError(null);
         setTimeout(() => {
           const a = audioRef.current;
+          console.log('Audio src:', recordingUrl);
           if (a) {
             a.currentTime = 0;
-            a.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+            a.play().then(() => setIsPlaying(true)).catch((e) => {
+              console.error('Autoplay failed:', e);
+              setIsPlaying(false);
+            });
           }
         }, 0);
       } else {
@@ -125,23 +146,29 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
       <DialogTrigger asChild>
         {triggerButton}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="audio-dialog-desc">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Volume2 className="h-5 w-5" />
             {title}
           </DialogTitle>
+          <DialogDescription id="audio-dialog-desc" className="sr-only">
+            Pemutar rakaman panggilan dengan kawalan main, langkau, dan volum.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          <audio 
-            ref={audioRef} 
-            src={recordingUrl} 
+          <audio
+            ref={audioRef}
             preload="metadata"
             controls
+            playsInline
             onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration || 0)}
-            onError={(e) => { console.error('Audio loading error:', e); setError('Gagal memuat audio.'); }}
-          />
+            onError={(e) => { console.error('Audio loading error:', e, 'URL:', recordingUrl); setError('Gagal memuat audio.'); }}
+          >
+            <source src={recordingUrl} type={getAudioMimeType(recordingUrl)} />
+            Pelayar anda tidak menyokong audio.
+          </audio>
 
           {error && (
             <div className="text-sm text-destructive">
@@ -213,8 +240,16 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
             />
           </div>
 
-          {/* Download Button */}
-          <div className="flex justify-center">
+          {/* Open/Download Buttons */}
+          <div className="flex justify-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => window.open(recordingUrl, '_blank')}
+              className="flex items-center gap-2"
+            >
+              <Play className="h-4 w-4" />
+              Buka di Tab Baru
+            </Button>
             <Button
               variant="outline"
               onClick={downloadRecording}
