@@ -376,14 +376,9 @@ export const OnboardingWizard: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" onClick={handleSkip}>
-              Skip Guide
-            </Button>
-            <Button variant="ghost" size="icon" onClick={hideOnboarding}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={handleSkip}>
+            Skip Guide
+          </Button>
         </div>
 
         {/* Progress Bar */}
