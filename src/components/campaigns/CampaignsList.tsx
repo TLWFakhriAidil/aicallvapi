@@ -29,12 +29,18 @@ export function CampaignsList() {
 
       // Add date range filter if provided
       if (dateRange?.from) {
-        query = query.gte('created_at', dateRange.from.toISOString());
+        // Set to start of day in local timezone, then convert to UTC
+        const fromDate = new Date(dateRange.from);
+        fromDate.setHours(0, 0, 0, 0);
+        const fromISO = fromDate.toISOString();
+        query = query.gte('created_at', fromISO);
       }
       if (dateRange?.to) {
-        const endDate = new Date(dateRange.to);
-        endDate.setHours(23, 59, 59, 999); // End of day
-        query = query.lte('created_at', endDate.toISOString());
+        // Set to end of day in local timezone, then convert to UTC
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+        const toISO = toDate.toISOString();
+        query = query.lte('created_at', toISO);
       }
 
       const { data: campaignsData, error: campaignsError } = await query
