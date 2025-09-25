@@ -140,6 +140,12 @@ export function CallLogsTable() {
     getAgentName(log.agent_id).toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const totalCost = filteredLogs.reduce(
+    (sum, log) => sum + (log.metadata?.call_cost || 0), 
+    0
+  );
+
+
   const renderRecordingButton = (log: any) => {
     // Check multiple possible locations for recording URL
     const recordingUrl = log?.metadata?.recording_url || 
@@ -250,6 +256,11 @@ export function CallLogsTable() {
         </div>
       </CardHeader>
       <CardContent>
+
+      <div className="mb-4 flex items-center gap-2 font-semibold">
+        <DollarSign className="h-5 w-5 text-muted-foreground" />
+        Jumlah Kos: <span>{totalCost.toFixed(4)} USD</span>
+      </div>
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
