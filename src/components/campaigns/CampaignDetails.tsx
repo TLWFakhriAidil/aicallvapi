@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AudioPlayerDialog } from "@/components/ui/audio-player-dialog";
 import { ArrowLeft, Phone, CheckCircle, XCircle, Clock, BarChart3, Play, FileText, DollarSign } from "lucide-react";
 
 interface CampaignDetailsProps {
@@ -80,15 +81,15 @@ export function CampaignDetails({ campaignId, onBack }: CampaignDetailsProps) {
     if (!recordingUrl) return <span className="text-muted-foreground">Tiada rakaman</span>;
     
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => window.open(recordingUrl, '_blank')}
-        className="flex items-center gap-2"
-      >
-        <Play className="h-4 w-4" />
-        Main
-      </Button>
+      <AudioPlayerDialog
+        recordingUrl={recordingUrl}
+        triggerButton={
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Main
+          </Button>
+        }
+      />
     );
   };
 

@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AudioPlayerDialog } from '@/components/ui/audio-player-dialog';
 
 interface CallLog {
   id: string;
@@ -116,15 +117,15 @@ export function CallLogsTable() {
     if (!recordingUrl) return <span className="text-muted-foreground">No recording</span>;
     
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => window.open(recordingUrl, '_blank')}
-        className="flex items-center gap-2"
-      >
-        <Play className="h-4 w-4" />
-        Play
-      </Button>
+      <AudioPlayerDialog
+        recordingUrl={recordingUrl}
+        triggerButton={
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Play
+          </Button>
+        }
+      />
     );
   };
 
