@@ -161,8 +161,8 @@ export function AudioPlayerDialog({ recordingUrl, triggerButton, title = "Rakama
           <audio
             ref={audioRef}
             preload="metadata"
-            controls
             playsInline
+            className="hidden"
             onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration || 0)}
             onTimeUpdate={(e) => setCurrentTime((e.target as HTMLAudioElement).currentTime)}
             onEnded={() => setIsPlaying(false)}
