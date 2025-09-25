@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AudioPlayerDialog } from '@/components/ui/audio-player-dialog';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
 
 interface CallLog {
   id: string;
@@ -47,16 +49,31 @@ interface Agent {
 export function CallLogsTable() {
   const { user } = useCustomAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // Get call logs from Supabase
   const { data: callLogs, isLoading, error } = useQuery({
-    queryKey: ['call-logs', user?.id],
+    queryKey: ['call-logs', user?.id, dateRange],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      
+      // Build query with date filtering
+      let query = supabase
         .from('call_logs')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+
+      // Add date range filter if provided
+      if (dateRange?.from) {
+        query = query.gte('created_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        const endDate = new Date(dateRange.to);
+        endDate.setHours(23, 59, 59, 999); // End of day
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -205,7 +222,7 @@ export function CallLogsTable() {
     <Card>
       <CardHeader>
         <CardTitle>Call Logs</CardTitle>
-        <div className="flex items-center space-x-2 mt-4">
+        <div className="flex items-center space-x-4 mt-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -215,6 +232,11 @@ export function CallLogsTable() {
               className="pl-10"
             />
           </div>
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            placeholder="Tapis mengikut tarikh"
+          />
         </div>
       </CardHeader>
       <CardContent>

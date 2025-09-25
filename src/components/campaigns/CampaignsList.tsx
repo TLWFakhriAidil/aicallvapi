@@ -8,21 +8,36 @@ import { Button } from "@/components/ui/button";
 import { Eye, BarChart3, Calendar, Users, Phone, CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import { CampaignDetails } from "./CampaignDetails";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 
 export function CampaignsList() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useCustomAuth();
 
   const { data: campaigns, isLoading } = useQuery({
-    queryKey: ["campaigns", user?.id],
+    queryKey: ["campaigns", user?.id, dateRange],
     queryFn: async () => {
       if (!user) throw new Error("User not authenticated");
 
-      // First get campaigns
-      const { data: campaignsData, error: campaignsError } = await supabase
+      // Build query with date filtering
+      let query = supabase
         .from('campaigns')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+
+      // Add date range filter if provided
+      if (dateRange?.from) {
+        query = query.gte('created_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        const endDate = new Date(dateRange.to);
+        endDate.setHours(23, 59, 59, 999); // End of day
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data: campaignsData, error: campaignsError } = await query
         .order('created_at', { ascending: false });
 
       if (campaignsError) throw campaignsError;
@@ -83,6 +98,13 @@ export function CampaignsList() {
           <BarChart3 className="h-5 w-5" />
           Senarai Kempen Batch Call
         </CardTitle>
+        <div className="mt-4">
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            placeholder="Tapis mengikut tarikh"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
