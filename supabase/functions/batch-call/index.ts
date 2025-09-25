@@ -112,7 +112,7 @@ serve(async (req) => {
     // Default voice (hardcoded ElevenLabs config)
     const defaultVoice = {
       provider: '11labs',
-      voiceId: 'Kci88S94DOa31YrdXiWR',
+      voiceId: 'Sarah',
       model: 'eleven_flash_v2_5',
       stability: 0.8,
       similarityBoost: 1,
@@ -456,7 +456,7 @@ Only respond with the JSON.`
           return { success: true, phoneNumber, callId: responseData.id };
 
         } catch (error) {
-          console.error(`Failed to call ${phoneNumber}:`, (error as Error).message || 'Unknown error');
+          console.error(`Failed to call ${phoneNumber}:`, error.message);
           
           // Log failed call
           await supabaseAdmin.from('call_logs').insert({
@@ -468,12 +468,12 @@ Only respond with the JSON.`
             caller_number: phoneNumber,
             start_time: new Date().toISOString(),
             metadata: {
-              error: (error as Error).message || 'Unknown error',
+              error: error.message,
               batch_call: true
             }
           });
 
-          return { success: false, phoneNumber, error: (error as Error).message || 'Unknown error' };
+          return { success: false, phoneNumber, error: error.message };
         }
       });
 
@@ -527,7 +527,7 @@ Only respond with the JSON.`
 
   } catch (error) {
     console.error('Error in batch-call function:', error);
-    return new Response(JSON.stringify({ error: (error as Error).message || 'Unknown error' }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
