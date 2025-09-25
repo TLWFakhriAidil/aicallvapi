@@ -101,7 +101,23 @@ serve(async (req) => {
       throw new Error('Prompt not found');
     }
 
-    // Try to get user's voice config (from agents table)
+    // Try to get user's manual voice config first (highest priority)
+    let manualVoiceId = null;
+    try {
+      const { data: voiceConfig } = await supabaseAdmin
+        .from('voice_config')
+        .select('manual_voice_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (voiceConfig && voiceConfig.manual_voice_id && voiceConfig.manual_voice_id.trim() !== '') {
+        manualVoiceId = voiceConfig.manual_voice_id.trim();
+      }
+    } catch (error) {
+      console.log('Voice config table not ready yet or error:', error);
+    }
+
+    // Try to get user's voice config from agents table (fallback)
     const { data: userAgent, error: agentError } = await supabaseAdmin
       .from('agents')
       .select('voice_provider, voice, agent_id')
@@ -109,10 +125,10 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    // Default voice (hardcoded ElevenLabs config)
+    // Default voice with Sarah's proper voice ID
     const defaultVoice = {
       provider: '11labs',
-      voiceId: 'Sarah',
+      voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah's proper voice ID
       model: 'eleven_flash_v2_5',
       stability: 0.8,
       similarityBoost: 1,
@@ -124,25 +140,36 @@ serve(async (req) => {
       inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
     };
 
-    // Use user config if exists, else fallback to default
-    const selectedVoice = (userAgent && userAgent.voice_provider && userAgent.voice)
-      ? {
-          provider: userAgent.voice_provider === 'elevenlabs' ? '11labs' : userAgent.voice_provider,
-          voiceId: userAgent.voice,
-          model: userAgent.voice_provider === 'elevenlabs' ? 'eleven_flash_v2_5' : 
-                 userAgent.voice_provider === 'openai' ? 'gpt-4o-realtime' :
-                 userAgent.voice_provider === 'playht' ? 'PlayHT2.0-turbo' :
-                 userAgent.voice_provider === 'azure' ? 'azure' : defaultVoice.model,
-          stability: 0.8,
-          similarityBoost: 1,
-          style: 0.0,
-          useSpeakerBoost: false,
-          speed: 0.8,
-          optimizeStreamingLatency: 4,
-          autoMode: true,
-          inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
-        }
-      : defaultVoice;
+    // Priority: manual voice ID > agent voice config > default
+    let selectedVoice;
+    if (manualVoiceId) {
+      // Use manual voice ID with default ElevenLabs settings
+      selectedVoice = {
+        ...defaultVoice,
+        voiceId: manualVoiceId
+      };
+    } else if (userAgent && userAgent.voice_provider && userAgent.voice) {
+      // Use agent voice config
+      selectedVoice = {
+        provider: userAgent.voice_provider === 'elevenlabs' ? '11labs' : userAgent.voice_provider,
+        voiceId: userAgent.voice,
+        model: userAgent.voice_provider === 'elevenlabs' ? 'eleven_flash_v2_5' : 
+               userAgent.voice_provider === 'openai' ? 'gpt-4o-realtime' :
+               userAgent.voice_provider === 'playht' ? 'PlayHT2.0-turbo' :
+               userAgent.voice_provider === 'azure' ? 'azure' : defaultVoice.model,
+        stability: 0.8,
+        similarityBoost: 1,
+        style: 0.0,
+        useSpeakerBoost: false,
+        speed: 0.8,
+        optimizeStreamingLatency: 4,
+        autoMode: true,
+        inputPunctuationBoundaries: [",", "،", "۔", "，", "."]
+      };
+    } else {
+      // Use default voice (Sarah)
+      selectedVoice = defaultVoice;
+    }
 
     // Validate and format phone numbers
     const validPhones: string[] = [];
@@ -456,7 +483,8 @@ Only respond with the JSON.`
           return { success: true, phoneNumber, callId: responseData.id };
 
         } catch (error) {
-          console.error(`Failed to call ${phoneNumber}:`, error.message);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`Failed to call ${phoneNumber}:`, errorMessage);
           
           // Log failed call
           await supabaseAdmin.from('call_logs').insert({
@@ -468,12 +496,12 @@ Only respond with the JSON.`
             caller_number: phoneNumber,
             start_time: new Date().toISOString(),
             metadata: {
-              error: error.message,
+              error: errorMessage,
               batch_call: true
             }
           });
 
-          return { success: false, phoneNumber, error: error.message };
+          return { success: false, phoneNumber, error: errorMessage };
         }
       });
 
@@ -526,8 +554,9 @@ Only respond with the JSON.`
     });
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error in batch-call function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
