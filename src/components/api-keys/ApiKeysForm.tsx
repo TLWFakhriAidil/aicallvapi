@@ -167,7 +167,7 @@ export function ApiKeysForm() {
                 <FormItem>
                   <FormLabel>VAPI API Key</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" placeholder="Enter your VAPI API key" />
+                    <Input {...field} type="text" placeholder="Enter your VAPI API key" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
